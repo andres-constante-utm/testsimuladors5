@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulacro — Sistemas Digitales</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b131c;
+    --panel:#131f2b;
+    --panel-2:#182734;
+    --trace:#2a3a48;
+    --cyan:#4fd1c1;
+    --amber:#e8a33d;
+    --green:#52d17c;
+    --red:#e5533d;
+    --text:#dde6ee;
+    --text-dim:#7c8ba0;
+    --border:#233241;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(79,209,193,0.06), transparent 45%),
+      radial-gradient(circle at 85% 100%, rgba(232,163,61,0.06), transparent 45%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    padding:28px 16px 60px;
+    min-height:100vh;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+
+  /* header */
+  .hdr{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:6px;flex-wrap:wrap;}
+  .hdr .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;color:var(--cyan);text-transform:uppercase;}
+  .hdr h1{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:800;margin:2px 0 0;letter-spacing:-.01em;}
+  .hdr .unit-tag{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);border:1px solid var(--border);padding:4px 9px;border-radius:3px;background:var(--panel);}
+  .rule{height:1px;background:linear-gradient(90deg, var(--cyan), var(--border) 35%, var(--border) 65%, var(--amber));margin:16px 0 22px;opacity:.6;}
+
+  /* LED progress rail */
+  .rail{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:22px;}
+  .led{width:16px;height:8px;border-radius:2px;background:var(--panel-2);border:1px solid var(--border);transition:.2s;}
+  .led.done{background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 6px rgba(79,209,193,.6);}
+  .led.now{background:var(--amber);border-color:var(--amber);box-shadow:0 0 8px rgba(232,163,61,.75);}
+
+  /* card */
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:24px 22px;position:relative;overflow:hidden;}
+  .card::before{content:"";position:absolute;top:0;left:0;width:3px;height:100%;background:var(--cyan);}
+  .qmeta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;display:flex;justify-content:space-between;}
+  .qtext{font-size:17px;line-height:1.5;margin:0 0 20px;font-weight:600;}
+  .opts{display:flex;flex-direction:column;gap:10px;}
+  .opt{
+    display:flex;align-items:center;gap:12px;
+    background:var(--panel-2);border:1px solid var(--border);border-radius:8px;
+    padding:13px 14px;cursor:pointer;text-align:left;font-size:14.5px;color:var(--text);
+    font-family:'Inter',sans-serif;transition:.15s;
+  }
+  .opt:hover{border-color:var(--cyan);}
+  .opt .tag{
+    font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--text-dim);
+    border:1px solid var(--border);width:22px;height:22px;border-radius:4px;
+    display:flex;align-items:center;justify-content:center;flex:none;
+  }
+  .opt.selected{border-color:var(--amber);background:rgba(232,163,61,.08);}
+  .opt.selected .tag{border-color:var(--amber);color:var(--amber);background:rgba(232,163,61,.12);}
+
+  .opt.correct{border-color:var(--green);background:rgba(82,209,124,.09);}
+  .opt.correct .tag{border-color:var(--green);color:var(--green);background:rgba(82,209,124,.14);}
+  .opt.incorrect{border-color:var(--red);background:rgba(229,83,61,.09);}
+  .opt.incorrect .tag{border-color:var(--red);color:var(--red);background:rgba(229,83,61,.14);}
+
+  .navrow{display:flex;justify-content:space-between;align-items:center;margin-top:22px;gap:10px;flex-wrap:wrap;}
+  button{
+    font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:700;letter-spacing:.04em;
+    text-transform:uppercase;padding:11px 18px;border-radius:7px;border:1px solid var(--border);
+    background:var(--panel-2);color:var(--text);cursor:pointer;transition:.15s;
+  }
+  button:hover:not(:disabled){border-color:var(--cyan);color:var(--cyan);}
+  button:disabled{opacity:.35;cursor:not-allowed;}
+  button.primary{background:var(--cyan);color:#0b131c;border-color:var(--cyan);}
+  button.primary:hover:not(:disabled){filter:brightness(1.08);color:#0b131c;}
+  button.ghost{background:transparent;}
+  button.reveal{border-color:var(--amber);color:var(--amber);}
+  button.reveal:hover{background:rgba(232,163,61,.1);color:var(--amber);}
+  button.reveal.active{background:rgba(232,163,61,.14);}
+
+  /* reveal panel */
+  .revealpanel{
+    margin-top:16px;border:1px dashed var(--amber);border-radius:8px;
+    background:rgba(232,163,61,.06);padding:14px 16px;
+  }
+  .revealpanel .rp-title{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:6px;}
+  .revealpanel .rp-answer{font-size:14.5px;font-weight:700;margin-bottom:8px;}
+  .revealpanel .rp-exp{font-size:13.5px;line-height:1.55;color:var(--text-dim);}
+
+  /* start screen */
+  .start .card{text-align:left;}
+  .start p{color:var(--text-dim);line-height:1.6;font-size:14.5px;}
+  .badges{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 20px;}
+  .badge{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);border:1px solid var(--border);background:var(--panel-2);padding:5px 10px;border-radius:5px;}
+
+  /* results */
+  .scorepanel{
+    background:#08111a;border:1px solid var(--border);border-radius:10px;
+    padding:26px 22px;text-align:center;margin-bottom:20px;
+    background-image:repeating-linear-gradient(180deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 3px);
+  }
+  .scoreval{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:56px;letter-spacing:.02em;text-shadow:0 0 18px currentColor;}
+  .scoreval.green{color:var(--green);}
+  .scoreval.amber{color:var(--amber);}
+  .scoreval.red{color:var(--red);}
+  .scorelabel{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);letter-spacing:.14em;text-transform:uppercase;margin-top:6px;}
+  .scorepct{font-size:13px;color:var(--text-dim);margin-top:10px;}
+
+  .unitgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:22px;}
+  .unitcard{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
+  .unitcard .u{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;}
+  .unitcard .v{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;margin-top:3px;}
+
+  .review{margin-top:6px;}
+  .revq{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 16px;margin-bottom:10px;}
+  .revq .rmeta{font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;gap:8px;align-items:center;}
+  .rmeta .ok{color:var(--green);} .rmeta .bad{color:var(--red);}
+  .revq p.qt{margin:0 0 10px;font-size:14.5px;font-weight:600;}
+  .revline{font-size:13.5px;line-height:1.5;margin:4px 0;}
+  .revline b{font-family:'JetBrains Mono',monospace;font-weight:700;}
+  .explain{margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);color:var(--text-dim);font-size:13px;line-height:1.55;}
+
+  .hidden{display:none !important;}
+  .toprow{display:flex;justify-content:flex-end;gap:10px;margin-bottom:14px;}
+  footer{text-align:center;color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:30px;letter-spacing:.04em;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hdr">
+    <div>
+      <div class="eyebrow">UTM · Ing. en Tecnologías de la Información</div>
+      <h1>Simulacro — Sistemas Digitales</h1>
+    </div>
+    <div class="unit-tag" id="bank-tag">30 preguntas · 4 unidades</div>
+  </div>
+  <div class="rule"></div>
+
+  <!-- START SCREEN -->
+  <div id="screen-start" class="start">
+    <div class="card">
+      <p><b style="color:var(--text)">Cómo funciona:</b> se generan 30 preguntas al azar (opción múltiple, 4 alternativas) tomadas de un banco de <span id="bank-size-text">120</span> preguntas, cubriendo las 4 unidades del compendio. Cada acierto vale 1 punto, calificación sobre 30. Puedes revelar la respuesta correcta de cada pregunta con el botón "Ver respuesta", o esperar al final para ver la nota, el desglose por unidad y la revisión completa.</p>
+      <div class="badges">
+        <span class="badge">U1 · Circuitos Secuenciales</span>
+        <span class="badge">U2 · PLD / CPLD / FPGA</span>
+        <span class="badge">U3 · Microprocesadores</span>
+        <span class="badge">U4 · Microcontroladores</span>
+      </div>
+      <button class="primary" onclick="startExam()">Iniciar simulacro</button>
+    </div>
+  </div>
+
+  <!-- EXAM SCREEN -->
+  <div id="screen-exam" class="hidden">
+    <div class="rail" id="rail"></div>
+    <div class="card">
+      <div class="qmeta"><span id="q-unit">UNIDAD</span><span id="q-count">1 / 30</span></div>
+      <p class="qtext" id="q-text"></p>
+      <div class="opts" id="q-opts"></div>
+      <div class="revealpanel hidden" id="reveal-panel">
+        <div class="rp-title">Respuesta correcta</div>
+        <div class="rp-answer" id="rp-answer"></div>
+        <div class="rp-exp" id="rp-exp"></div>
+      </div>
+    </div>
+    <div class="navrow">
+      <button class="ghost" id="btn-prev" onclick="prevQ()">◀ Anterior</button>
+      <button class="reveal" id="btn-reveal" onclick="toggleReveal()">Ver respuesta</button>
+      <button class="primary" id="btn-next" onclick="nextQ()">Siguiente ▶</button>
+    </div>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div id="screen-results" class="hidden">
+    <div class="toprow">
+      <button class="primary" onclick="startExam()">↻ Nuevo simulacro (preguntas nuevas)</button>
+    </div>
+    <div class="scorepanel">
+      <div class="scoreval" id="score-val">0/30</div>
+      <div class="scorelabel">Calificación</div>
+      <div class="scorepct" id="score-pct"></div>
+    </div>
+    <div class="unitgrid" id="unit-grid"></div>
+    <div class="review" id="review"></div>
+  </div>
+
+  <footer>Generado a partir de los compendios de Sistemas Digitales · UTM 2026</footer>
+</div>
+
+<script>
+/* ============ BANCO DE PREGUNTAS ============ */
+const BANK = [
+// ---------- UNIDAD 1: CIRCUITOS SECUENCIALES ----------
+{u:"U1", q:"¿Cuál es la diferencia fundamental entre un circuito combinacional y uno secuencial?", opts:["El secuencial usa más compuertas lógicas","El secuencial depende del estado anterior (tiene memoria); el combinacional solo de las entradas actuales","El combinacional es siempre más rápido en cualquier caso","El secuencial no requiere señal de reloj"], correct:1, exp:"Un circuito secuencial almacena estado (mediante flip-flops) y su salida depende de las entradas actuales Y del estado previo; el combinacional depende únicamente de las entradas presentes."},
+{u:"U1", q:"En un Flip-Flop SR, ¿qué combinación de entradas produce el estado prohibido?", opts:["S=0, R=0","S=1, R=0","S=0, R=1","S=1, R=1"], correct:3, exp:"Con S=R=1 ambas salidas Q y Q' tienden a 0 simultáneamente, violando la relación complementaria entre ellas: es un estado indeterminado/prohibido."},
+{u:"U1", q:"En el Flip-Flop D, ¿cuál es su ecuación característica?", opts:["Q(t+1) = D","Q(t+1) = J·Q' + K'·Q","Q(t+1) = Q'","Q(t+1) = T ⊕ Q"], correct:0, exp:"El FF-D simplemente transfiere el valor de D a la salida Q en el siguiente flanco de reloj: Q(t+1)=D."},
+{u:"U1", q:"En un Flip-Flop JK, ¿qué ocurre cuando J=1 y K=1?", opts:["Mantiene el estado anterior","Resetea (Q=0)","Setea (Q=1)","Invierte (toggle) el estado anterior"], correct:3, exp:"J=K=1 hace que el FF-JK conmute (toggle) su salida en cada flanco de reloj, resolviendo el estado prohibido que tendría un SR equivalente."},
+{u:"U1", q:"¿Qué caracteriza al Flip-Flop tipo T (Toggle)?", opts:["Cambia de estado solo cuando T=1", "Solo puede setear, nunca resetear","Es asíncrono por definición","No requiere señal de reloj"], correct:0, exp:"El FF-T conmuta su salida (Q(t+1) = T ⊕ Q) cuando T=1 y mantiene el estado cuando T=0; es muy usado en contadores binarios."},
+{u:"U1", q:"¿Por qué un contador asíncrono (ripple) es más lento que uno sincrónico?", opts:["Porque usa más flip-flops","Porque el reloj de cada FF depende de la salida del FF anterior, acumulando retardo de propagación","Porque requiere una PLA externa","Porque no puede contar en BCD"], correct:1, exp:"En el contador ripple, cada flip-flop dispara al siguiente, por lo que el retardo total se acumula etapa por etapa (efecto ondulación), a diferencia del sincrónico donde todos los FF cambian con el mismo reloj."},
+{u:"U1", q:"¿Cuál es la característica distintiva de un contador Johnson (twisted ring)?", opts:["Genera 2ⁿ estados únicos con n flip-flops y sin glitches","Requiere 2ⁿ flip-flops para n estados","Solo funciona en modo asíncrono","Es idéntico a un contador BCD"], correct:0, exp:"El contador Johnson retroalimenta el complemento del último FF al primero, logrando 2n estados con solo n flip-flops, con transiciones libres de glitches (cambia un solo bit por transición, como código Gray)."},
+{u:"U1", q:"En un contador en anillo (Ring Counter), ¿cómo se comporta la secuencia de estados?", opts:["Un único bit en '1' circula entre los n flip-flops","Todos los bits cambian simultáneamente en cada ciclo","Cuenta en código Gray puro","Detecta automáticamente el estado 1010"], correct:0, exp:"En el contador de anillo un solo '1' se desplaza de FF en FF (ej. 0001→0010→0100→1000→0001), generando n estados únicos con n flip-flops."},
+{u:"U1", q:"¿Cuál es la principal ventaja de codificar los estados de una FSM en código Gray?", opts:["Reduce el número de flip-flops necesarios a la mitad","Solo cambia un bit entre estados adyacentes, reduciendo glitches","Permite eliminar la señal de reloj","Es obligatorio para síntesis en FPGA"], correct:1, exp:"En código Gray, entre dos estados consecutivos cambia exactamente un bit, lo que minimiza los glitches transitorios en decodificadores y contadores respecto a la codificación binaria pura."},
+{u:"U1", q:"En una máquina de estados de Moore, ¿de qué depende la salida?", opts:["Únicamente del estado actual","Del estado actual y de las entradas actuales","Únicamente de las entradas actuales","Del estado siguiente"], correct:0, exp:"En Moore la salida es función solo del estado presente, por lo que permanece estable durante todo el ciclo de reloj en ese estado (salidas más 'limpias' y robustas frente a glitches de entrada)."},
+{u:"U1", q:"En una máquina de estados de Mealy, ¿de qué depende la salida?", opts:["Solo del estado actual","Del estado actual y de las entradas actuales","Solo del reloj","Del estado anterior únicamente"], correct:1, exp:"En Mealy la salida depende del estado actual Y de las entradas presentes, lo que suele permitir diseños con menos estados, pero con salidas que pueden cambiar dentro del mismo ciclo."},
+{u:"U1", q:"En un diagrama ASM (Algorithmic State Machine), ¿qué representa exactamente un bloque ASM?", opts:["Una compuerta lógica individual","Exactamente un ciclo de reloj completo","Un flip-flop físico","Una sección del código HDL sin relación temporal"], correct:1, exp:"Cada bloque ASM equivale a un ciclo de reloj, lo que garantiza que el diseño sea directamente sintetizable y que el comportamiento temporal sea predecible: es la ventaja principal del ASM frente a un flowchart tradicional."},
+{u:"U1", q:"¿Cuál es el orden correcto en la metodología formal de diseño de una FSM?", opts:["Codificación → tabla de estados → diagrama → ecuaciones","Especificación → diagrama de estados → tabla de estados → codificación → ecuaciones de excitación → ecuaciones de salida","Ecuaciones de salida → tabla de estados → especificación","Implementación → especificación → codificación"], correct:1, exp:"El flujo formal parte de la especificación en lenguaje natural, sigue con el diagrama de estados, la tabla de estados, la codificación de estados, las ecuaciones de excitación de los flip-flops elegidos y finalmente las ecuaciones de salida."},
+{u:"U1", q:"En SystemVerilog, ¿en qué bloque se describe típicamente el registro de estado (memoria) de una FSM?", opts:["always_comb","always_ff", "initial", "assign continuo únicamente"], correct:1, exp:"El registro de estado, al ser lógica secuencial sincronizada por reloj, se modela en un bloque always_ff @(posedge clk); la lógica de próximo estado y de salidas combinacionales va en always_comb."},
+{u:"U1", q:"¿Qué distingue a un contador BCD (módulo-10) de un contador binario simple de 4 bits?", opts:["El BCD necesita detectar y resetear en el estado 1010 (10) para contar solo 0-9","El BCD usa 8 flip-flops en vez de 4","El contador binario no puede ser sincrónico","El BCD no puede conectarse a un display de 7 segmentos"], correct:0, exp:"El contador BCD cuenta de 0000 a 1001 (0-9) y debe reiniciarse al detectar 1010, ya que ese estado no pertenece a la secuencia decimal válida; suele usarse una compuerta lógica (p. ej. NAND) para detectarlo."},
+{u:"U1", q:"La tabla de excitación de un flip-flop se utiliza para...", opts:["Calcular el consumo de potencia del circuito","Derivar las ecuaciones booleanas de las entradas del FF a partir de la transición estado actual → estado siguiente deseada","Determinar la frecuencia máxima de reloj","Elegir el encapsulado del circuito integrado"], correct:1, exp:"La tabla de excitación relaciona la transición Q(t)→Q(t+1) con los valores que deben tener las entradas del flip-flop (D, J/K, T) para producirla; es la base para derivar las ecuaciones de excitación en el diseño de FSM y contadores."},
+{u:"U1", q:"¿Cuál es la función principal de un registro de desplazamiento (shift register)?", opts:["Sumar dos números binarios","Almacenar y desplazar bits en serie o paralelo entre flip-flops encadenados","Convertir señales analógicas a digitales","Generar la señal de reloj del sistema"], correct:1, exp:"Un registro de desplazamiento encadena flip-flops de modo que los bits se desplazan de una etapa a la siguiente en cada pulso de reloj, permitiendo conversión serie-paralelo, retardos y operaciones aritméticas simples."},
+{u:"U1", q:"Al elegir entre codificación binaria y codificación one-hot para los estados de una FSM, ¿qué característica define a la codificación one-hot?", opts:["Usa log2(N) flip-flops para N estados","Usa un flip-flop por cada estado posible (solo uno activo a la vez)","Es idéntica a la codificación Gray","Elimina la necesidad de lógica combinacional de salida"], correct:1, exp:"La codificación one-hot asigna un flip-flop exclusivo a cada estado (solo uno en '1' en un momento dado), lo que simplifica la lógica combinacional a costa de usar más flip-flops que la codificación binaria."},
+{u:"U1", q:"Según el Teorema de De Morgan, ¿a qué es igual (A + B)'?", opts:["A' + B'","A' · B'","A · B","A + B"], correct:1, exp:"De Morgan establece que (A + B)' = A' · B' y, de forma dual, (A · B)' = A' + B'; es la base para convertir expresiones SOP/POS entre sí y para implementar lógica solo con compuertas NAND o NOR."},
+{u:"U1", q:"El teorema de absorción del álgebra de Boole establece que:", opts:["A + A·B = A","A + A' = 0","A · A = 0","A + 1 = A"], correct:0, exp:"El teorema de absorción indica que A + A·B = A (y de forma dual, A·(A+B) = A), ya que el término A·B queda 'absorbido' por A al ser siempre un subconjunto de los casos en que A es verdadero."},
+{u:"U1", q:"En una simplificación por Mapa de Karnaugh, ¿qué regla deben cumplir las agrupaciones de unos (minterms)?", opts:["Deben ser de cualquier tamaño, incluso 3 o 5 celdas","Deben tener un tamaño que sea potencia de 2 (1, 2, 4, 8...) y ser rectangulares/adyacentes","Deben incluir siempre todas las celdas del mapa","Solo se permite agrupar de a una celda"], correct:1, exp:"Las agrupaciones válidas en un mapa de Karnaugh deben tener un número de celdas potencia de 2 (1,2,4,8...), ser rectangulares (incluyendo adyacencias que 'envuelven' los bordes del mapa) y lo más grandes posible para lograr la mínima expresión."},
+{u:"U1", q:"¿Qué distingue al nivel de modelado RTL (Register Transfer Level) en HDL de los niveles Behavioral y Structural?", opts:["RTL describe el flujo de datos entre registros mediante operaciones aritméticas/lógicas, y es el nivel estándar para la síntesis automática","RTL solo sirve para simulación, nunca para síntesis","RTL describe compuertas individuales sin ningún registro","RTL es exclusivo del lenguaje C, no de HDL"], correct:0, exp:"El nivel RTL modela el flujo de datos entre registros mediante operaciones aritméticas y lógicas; es el nivel de abstracción estándar que las herramientas de síntesis convierten automáticamente en una netlist de compuertas."},
+{u:"U1", q:"¿Cuándo y quién desarrolló originalmente el lenguaje VHDL?", opts:["Phil Moorby en 1984, en Gateway Design Automation","El Departamento de Defensa de EE.UU. en 1983, estandarizado por IEEE en 1987","IBM en 1970, para mainframes","Intel en 1971, junto al primer microprocesador"], correct:1, exp:"VHDL (VHSIC Hardware Description Language) fue desarrollado por el Departamento de Defensa de EE.UU. en 1983 y estandarizado como IEEE Std 1076 en 1987; es fuertemente tipado y muy usado en defensa, aeroespacial e industria europea."},
+{u:"U1", q:"¿Qué es un sumador completo (full adder) en aritmética digital?", opts:["Un circuito con 3 entradas (A, B, Cin) y 2 salidas (Sum, Cout) que suma dos bits más un acarreo de entrada","Un circuito que solo puede sumar sin generar acarreo","Un tipo de flip-flop especializado en contar","Un multiplexor de 8 a 1"], correct:0, exp:"El sumador completo procesa dos bits de entrada (A, B) más un acarreo de entrada (Cin), produciendo la suma (Sum) y el acarreo de salida (Cout); se encadenan para formar sumadores de múltiples bits."},
+{u:"U1", q:"¿Qué función cumple la señal de selección de operación en una ALU (Unidad Aritmético-Lógica)?", opts:["Determina la frecuencia de reloj del sistema","Selecciona cuál operación aritmética o lógica (suma, resta, AND, OR, etc.) se ejecuta sobre los operandos de entrada","Define el modo de direccionamiento de memoria","Configura el voltaje de alimentación"], correct:1, exp:"La ALU recibe una señal de control (opcode/selección de función) que determina qué operación específica —suma, resta, AND, OR, XOR, desplazamiento, etc.— se aplicará a los operandos en ese ciclo."},
+{u:"U1", q:"¿Por qué se dice que un multiplexor (MUX) es un bloque universal?", opts:["Porque puede implementar cualquier función booleana de n variables seleccionando adecuadamente sus entradas de datos","Porque reemplaza completamente a la memoria RAM","Porque solo funciona con 2 entradas de selección","Porque elimina la necesidad de flip-flops en cualquier diseño"], correct:0, exp:"Un multiplexor de 2ⁿ:1 puede implementar cualquier función booleana de n variables aplicando los valores (o complementos) de la función a sus entradas de datos y usando las variables como líneas de selección."},
+{u:"U1", q:"¿Cuál es la diferencia clave entre una memoria ROM y una memoria RAM?", opts:["La ROM es volátil y la RAM no","La ROM es no volátil (conserva datos sin alimentación) y típicamente de solo lectura; la RAM es volátil y permite lectura/escritura","Ambas son idénticas en volatilidad y función","La RAM solo puede usarse en microcontroladores, nunca en PCs"], correct:1, exp:"La ROM retiene su contenido sin alimentación eléctrica (no volátil) y clásicamente es de solo lectura; la RAM pierde su contenido al desconectar la energía (volátil) pero permite lectura y escritura rápida durante la ejecución."},
+{u:"U1", q:"En HDL, ¿por qué se dice que las asignaciones dentro de un bloque 'process' (VHDL) o 'always' (Verilog) son secuenciales en el texto pero el hardware resultante sigue siendo concurrente?", opts:["Porque el simulador ignora el orden del código fuente","Porque, aunque el orden de las líneas afecta la simulación paso a paso, el circuito sintetizado ejecuta todas las asignaciones de forma paralela en hardware real","Porque HDL no permite bloques secuenciales","Porque las señales solo cambian una vez por segundo"], correct:1, exp:"Es una fuente común de confusión para quienes vienen de programación tradicional: el orden textual dentro de un process/always afecta la semántica de simulación, pero el hardware final —compuertas y flip-flops— opera de forma inherentemente concurrente/paralela."},
+
+{u:"U1", q:"¿Qué circuito integrado se utilizó en la Actividad 1 para implementar el Flip-Flop D en Tinkercad?", opts:["74HC74","74HC73","74HC00","CD4511"], correct:0, exp:"En la Actividad 1 de simulación de Flip-Flops en Tinkercad, el FF-D se implementó con el integrado 74HC74, alimentado a 5V, usando un generador de funciones como reloj e interruptores para controlar la entrada D."},
+{u:"U1", q:"¿Qué circuito integrado se utilizó en la Actividad 1 para implementar el Flip-Flop JK en Tinkercad?", opts:["74HC00","74HC73","CD4511","74HC163"], correct:1, exp:"El Flip-Flop JK de la Actividad 1 se implementó con el integrado 74HC73, probando todas las combinaciones de J y K y registrando los resultados en tablas de verdad."},
+{u:"U1", q:"En la metodología formal de diseño de FSM, ¿cuál es el propósito de la etapa final de verificación?", opts:["Elegir el encapsulado físico del circuito integrado","Simular el comportamiento del diseño con un testbench HDL o un banco de pruebas físico antes de darlo por concluido","Calcular el costo de fabricación del ASIC","Determinar el color de las pistas del PCB"], correct:1, exp:"Tras implementar las ecuaciones en compuertas, CPLD, FPGA o código HDL, la verificación consiste en simular el comportamiento con un testbench (o probarlo físicamente) para confirmar que el diseño cumple la especificación original."},
+{u:"U1", q:"¿Qué caracteriza a un contador up/down?", opts:["Solo puede contar en sentido ascendente","Su dirección de conteo (ascendente o descendente) es controlada por una señal de control externa","Requiere el doble de flip-flops que un contador binario simple","No puede ser sincrónico"], correct:1, exp:"El contador up/down incorpora una entrada de control que determina si la secuencia de conteo avanza (ascendente) o retrocede (descendente), siendo muy usado en aplicaciones de posicionamiento y encoders."},
+{u:"U1", q:"¿Cuántas entradas de datos y líneas de selección tiene un multiplexor 8:1?", opts:["8 entradas de datos y 3 líneas de selección","4 entradas de datos y 4 líneas de selección","2 entradas de datos y 8 líneas de selección","8 entradas de datos y 8 líneas de selección"], correct:0, exp:"Un multiplexor de 2ⁿ:1 requiere n líneas de selección; para 8 entradas de datos (2³=8) se necesitan exactamente 3 líneas de selección para elegir cuál de las 8 entradas se conecta a la salida."},
+// ---------- UNIDAD 2: PLD / CPLD / FPGA ----------
+{u:"U2", q:"¿Cuál es el modelo arquitectónico base de un PLD (Dispositivo Lógico Programable)?", opts:["Modelo AND-OR (plano de productos + plano de sumas)","Modelo basado exclusivamente en multiplexores","Modelo basado en memoria RAM pura","Modelo basado únicamente en compuertas XOR"], correct:0, exp:"Los PLD implementan funciones en forma de suma de productos mediante un plano AND (genera términos producto) seguido de un plano OR (los combina), reflejando la forma canónica SOP de la lógica booleana."},
+{u:"U2", q:"En un dispositivo PAL (Programmable Array Logic), ¿qué plano es programable?", opts:["Solo el plano OR","Ambos planos, AND y OR","Solo el plano AND; el plano OR es fijo","Ninguno, es de configuración fija de fábrica"], correct:2, exp:"En la PAL únicamente el plano AND es programable, mientras el plano OR viene con conexiones fijas; esto simplifica el diseño interno pero reduce flexibilidad frente a la PLA."},
+{u:"U2", q:"¿Qué distingue a una PLA (Programmable Logic Array) de una PAL?", opts:["La PLA tiene ambos planos, AND y OR, programables de forma independiente","La PLA no puede implementar funciones booleanas complejas","La PLA es siempre más rápida que la PAL","La PLA no requiere plano AND"], correct:0, exp:"La PLA ofrece mayor flexibilidad porque tanto el plano AND como el OR son programables, a costa de un retardo de propagación ligeramente mayor que el de la PAL."},
+{u:"U2", q:"¿Qué hace especial a un dispositivo GAL frente a una PAL clásica?", opts:["Es reprogramable (tecnología EEPROM) y puede emular varios modelos de PAL","Solo funciona en modo combinacional puro","No admite macroceldas configurables","Usa exclusivamente fusibles de una sola escritura"], correct:0, exp:"La GAL (Generic Array Logic), fabricada con EEPROM, es reprogramable y su arquitectura OLMC configurable le permite emular a decenas de modelos de PAL distintos, reduciendo costos de inventario."},
+{u:"U2", q:"¿Qué componentes típicos conforman una macrocelda SPLD completa?", opts:["Plano AND, compuerta OR, flip-flop D/T/JK, y MUX de salida con 3-state","Solo compuertas NAND en cascada","Un procesador RISC embebido","Una memoria RAM de doble puerto"], correct:0, exp:"Una macrocelda SPLD combina el plano AND (términos producto), la compuerta OR (suma de productos), un flip-flop para registrar la salida (lógica secuencial) y un multiplexor de salida con buffer de tres estados."},
+{u:"U2", q:"¿Qué diferencia principal existe entre un CPLD y un SPLD?", opts:["El CPLD integra múltiples bloques funcionales interconectados por una matriz de interconexión programable (PIA), mientras el SPLD es un único bloque AND-OR","El SPLD siempre tiene mayor densidad que el CPLD","El CPLD no puede implementar lógica secuencial","El SPLD usa tecnología FLASH obligatoriamente"], correct:0, exp:"El CPLD escala la arquitectura SPLD integrando varios bloques funcionales (function blocks) conectados mediante una interconexión programable (PIA), logrando mayor densidad que un SPLD individual."},
+{u:"U2", q:"¿Qué elemento fundamental de una FPGA permite implementar cualquier función booleana de k entradas?", opts:["La LUT (Look-Up Table)","El plano AND fijo","El bus de direcciones","El oscilador interno"], correct:0, exp:"La LUT es una pequeña memoria configurable que almacena la tabla de verdad de una función de k entradas (típicamente 4, 5 o 6 según la familia), permitiendo implementar cualquier función lógica de ese tamaño."},
+{u:"U2", q:"¿Por qué el retardo de propagación en una FPGA es variable, a diferencia del CPLD?", opts:["Porque depende de la longitud de la ruta de routing elegida por la herramienta de síntesis, que consume entre 50-70% del retardo total","Porque las FPGA no tienen reloj interno","Porque las LUT cambian de tamaño dinámicamente en tiempo de ejecución","Porque el CPLD no tiene interconexión alguna"], correct:0, exp:"A diferencia del CPLD (arquitectura determinista con interconexión fija), en la FPGA el router elige rutas de longitud variable entre los bloques lógicos, y ese routing puede representar del 50% al 70% del retardo total de la ruta crítica."},
+{u:"U2", q:"¿Qué función cumple un bloque DSP (DSP slice) dentro de una FPGA?", opts:["Genera la señal de reloj global","Ejecuta multiplicación-acumulación de alta velocidad (P = A×B + C) en un solo ciclo, útil para filtros FIR/IIR y redes neuronales","Almacena el bitstream de configuración","Reemplaza a todas las LUT del dispositivo"], correct:1, exp:"Los DSP slices son multiplicadores-acumuladores dedicados y de alta velocidad que ejecutan P = A×B + C en un ciclo de reloj, esenciales en procesamiento digital de señales, filtros y aceleración de redes neuronales (CNN)."},
+{u:"U2", q:"En cuanto a configuración no volátil, ¿qué caracteriza a la mayoría de las FPGA basadas en SRAM frente a un CPLD?", opts:["La FPGA basada en SRAM pierde su configuración al apagarse y requiere cargar el bitstream cada vez, mientras el CPLD (FLASH) retiene su configuración","La FPGA nunca necesita configuración externa","El CPLD pierde su configuración al apagarse igual que la FPGA SRAM","Ambos usan EEPROM por defecto"], correct:0, exp:"La mayoría de las FPGA usan celdas de configuración SRAM, que son volátiles y requieren recargar el bitstream en cada encendido (desde una memoria externa); el CPLD, con tecnología FLASH no volátil, arranca instantáneamente con su lógica ya configurada."},
+{u:"U2", q:"En cuanto al costo unitario entre las tecnologías de lógica programable, ¿cuál es el orden típico de menor a mayor?", opts:["FPGA < CPLD < SPLD","SPLD < CPLD < FPGA","CPLD < SPLD < FPGA","No existe diferencia significativa de costo entre ellas"], correct:1, exp:"Según la comparativa de densidad y complejidad, el SPLD tiene el costo unitario más bajo, seguido del CPLD (bajo-medio), mientras la FPGA, al ofrecer mayor densidad y complejidad de diseño, tiene el costo medio-alto."},
+{u:"U2", q:"¿Cuál es una ventaja clave de un CPLD frente a una FPGA en aplicaciones donde se requiere lógica de control simple y arranque inmediato?", opts:["El CPLD tiene mayor cantidad de bloques DSP","El CPLD conserva su configuración de forma no volátil (FLASH) y está operativo apenas se energiza, sin necesidad de cargar un bitstream externo","El CPLD siempre es más denso que la FPGA","El CPLD no requiere ninguna herramienta de síntesis"], correct:1, exp:"Gracias a su tecnología FLASH no volátil, el CPLD queda funcional inmediatamente al aplicar alimentación, lo cual es valioso en decodificación de buses, glue logic y máquinas de estado simples que no pueden esperar la carga de un bitstream."},
+{u:"U2", q:"Según la comparativa de densidad, ¿qué rango de compuertas corresponde típicamente a una FPGA?", opts:["Menos de 1K puertas","Entre 1K y 100K puertas","Más de 100K puertas","Exactamente 500 puertas fijas"], correct:2, exp:"La FPGA es la tecnología de mayor densidad entre las estudiadas (SPLD, CPLD, PLA, FPGA), superando las 100K puertas equivalentes, gracias a su arquitectura de miles de bloques lógicos (LUT+FF) interconectados."},
+{u:"U2", q:"En el caso de estudio de selección de un dispositivo programable para un sistema de semáforo, ¿qué característica hace atractivo a un dispositivo como el Intel MAX 10 frente a una FPGA basada en SRAM?", opts:["Su capacidad de configuración no volátil integrada, que permite operar de forma inmediata sin bitstream externo","Su altísima densidad de más de un millón de LUT","Que no requiere ningún tipo de programación","Que solo puede sintetizarse con VHDL, nunca con Verilog"], correct:0, exp:"El Intel MAX 10 combina características de CPLD y FPGA, incluyendo configuración Flash no volátil integrada, lo que resulta ideal para sistemas de control como semáforos que deben arrancar de inmediato sin depender de una memoria de configuración externa."},
+{u:"U2", q:"¿Qué diferencia fundamental existe entre un ASIC y una FPGA?", opts:["El ASIC se fabrica con la lógica fija para una aplicación específica (sin reprogramación posible), mientras la FPGA es reconfigurable después de fabricada","El ASIC siempre es más barato que la FPGA en bajos volúmenes","La FPGA no puede implementar lógica secuencial","El ASIC es programable por el usuario final igual que una FPGA"], correct:0, exp:"Un ASIC se diseña y fabrica para una función fija, con un costo de desarrollo (NRE) alto pero bajo costo unitario en grandes volúmenes; la FPGA, en cambio, es reconfigurable por el usuario tras la fabricación, ideal para prototipado y bajos/medios volúmenes."},
+{u:"U2", q:"¿Qué tipo de memoria interna de una FPGA se utiliza como bloque de memoria dedicado (RAM/ROM/FIFO configurable)?", opts:["BRAM (Block RAM)","LUT combinacional","Registro de desplazamiento externo","Memoria caché L3"], correct:0, exp:"La BRAM son bloques de memoria SRAM de doble puerto (típicamente 18 Kb o 36 Kb) integrados en la FPGA, configurables como RAM simple, RAM dual-port, ROM o FIFO."},
+{u:"U2", q:"¿Qué empresas concentran aproximadamente el 70% del mercado global de FPGA y CPLD según datos de IDC 2023?", opts:["Qualcomm y Samsung","Intel (Altera) y AMD (Xilinx)","Texas Instruments y STMicroelectronics","IBM y Oracle"], correct:1, exp:"Intel (que adquirió Altera) y AMD (que adquirió Xilinx) concentran aproximadamente el 70% del mercado global de FPGA y CPLD, consolidando el mercado en dos actores principales."},
+{u:"U2", q:"¿Qué tecnologías de programación no volátil se utilizan típicamente en un CPLD?", opts:["EEPROM y FLASH","Solo fusibles de una sola escritura","Exclusivamente SRAM volátil","Discos duros mecánicos externos"], correct:0, exp:"Los CPLD emplean tecnologías de programación no volátiles como EEPROM o FLASH, lo que les permite retener su configuración lógica sin necesidad de alimentación continua, a diferencia de la SRAM volátil típica de las FPGA."},
+{u:"U2", q:"Formalmente, ¿qué determina la capacidad de una PLA con n entradas, k términos producto y m salidas?", opts:["Que puede implementar cualquier conjunto de m funciones booleanas de n variables, siempre que la suma total de términos producto no exceda k","Que solo puede implementar una única función booleana por dispositivo","Que el número de salidas m debe ser igual al número de entradas n","Que no puede compartir términos producto entre distintas salidas"], correct:0, exp:"Una PLA con n entradas, k términos producto y m salidas puede implementar cualquier conjunto de m funciones booleanas de esas n variables, siempre que la suma total de términos producto requeridos por todas las funciones no supere los k disponibles en el plano AND."},
+
+{u:"U2", q:"¿Qué integrado se utilizó como decodificador de BCD a display de 7 segmentos en la Actividad 2 (contador sincrónico con FSM)?", opts:["CD4511","74HC00","74HC74","74HC163"], correct:0, exp:"El CD4511 funciona como decodificador BCD a 7 segmentos; en la Actividad 2 recibió las salidas del contador BCD para mostrar el conteo en un display de cátodo común."},
+{u:"U2", q:"¿Qué compuerta lógica se empleó en la Actividad 2 para detectar el estado 1010 y reiniciar el contador BCD a 0000?", opts:["Una compuerta NAND (74HC00)","Una compuerta XOR","Un flip-flop tipo T adicional","Un multiplexor 4:1"], correct:0, exp:"Se utilizó la compuerta NAND 74HC00 para reconocer la combinación 1010 (que no pertenece a la secuencia BCD válida) y generar la señal de borrado que devuelve al contador al estado 0000."},
+{u:"U2", q:"¿Qué significa NRE en el contexto del desarrollo de un ASIC?", opts:["Non-Recurring Engineering: el costo de diseño único e inicial, independiente del volumen de producción","Network Routing Efficiency, una métrica de FPGA","Non-Reactive Element, un tipo de flip-flop","New Release Edition del software de síntesis"], correct:0, exp:"El NRE (Non-Recurring Engineering) es el costo fijo de diseño, verificación y fabricación de las máscaras de un ASIC; se paga una sola vez y luego se diluye entre las unidades producidas, por lo que solo resulta rentable en volúmenes altos."},
+{u:"U2", q:"¿Qué ventaja ofrece una FPGA frente a un ASIC durante la etapa de prototipado de un diseño digital?", opts:["Puede reprogramarse múltiples veces sin necesidad de refabricar el chip, permitiendo corregir errores rápidamente","Siempre tiene menor costo unitario en cualquier volumen de producción","No requiere ninguna herramienta de síntesis","Su consumo de potencia es siempre menor que el de un ASIC"], correct:0, exp:"La reconfigurabilidad de la FPGA permite iterar el diseño y corregir errores simplemente recargando un nuevo bitstream, sin el costo y tiempo de fabricar nuevas máscaras como ocurriría con un ASIC."},
+{u:"U2", q:"¿Qué cifra aproximada alcanzó el mercado global de dispositivos lógicos programables (PLD+CPLD+FPGA) en 2023, según Grand View Research (2024)?", opts:["USD 980 millones","USD 9,800 millones","USD 98,000 millones","USD 980,000 millones"], correct:1, exp:"Según datos citados de Grand View Research (2024), el mercado global de PLD, CPLD y FPGA superó los USD 9,800 millones en 2023, con una tasa de crecimiento anual compuesta proyectada del 8.1% hasta 2030."},
+// ---------- UNIDAD 3: MICROPROCESADORES ----------
+{u:"U3", q:"¿Cuál es la diferencia estructural entre la arquitectura Von Neumann y la Harvard?", opts:["Von Neumann usa registros de 64 bits; Harvard usa de 32 bits","Von Neumann comparte una misma memoria para datos e instrucciones; Harvard mantiene memorias físicamente separadas","Harvard es más antigua que Von Neumann","Von Neumann solo se usa en microcontroladores"], correct:1, exp:"En Von Neumann, datos e instrucciones comparten espacio de memoria y bus, generando el llamado 'cuello de botella de Von Neumann'; en Harvard existen memorias y buses separados para instrucciones y datos, permitiendo accesos simultáneos."},
+{u:"U3", q:"¿Qué ventaja principal ofrece la arquitectura RISC sobre CISC?", opts:["Mayor número de instrucciones disponibles","Instrucciones de longitud variable para mayor compactación","Pipeline más eficiente gracias a instrucciones de longitud fija y decodificación simple","Acceso directo a memoria en cualquier instrucción"], correct:2, exp:"El conjunto reducido de instrucciones RISC, de longitud fija y ejecución simple, facilita un pipeline más eficiente y predecible que el de un procesador CISC con instrucciones complejas y de longitud variable."},
+{u:"U3", q:"En un pipeline clásico de 5 etapas, ¿cuál es el orden correcto?", opts:["EX → IF → ID → WB → MEM","IF → ID → EX → MEM → WB","MEM → IF → EX → ID → WB","WB → EX → ID → IF → MEM"], correct:1, exp:"El pipeline clásico de 5 etapas sigue el orden: Fetch (búsqueda) → Decode (decodificación) → Execute (ejecución) → Memory (acceso a memoria) → Write Back (escritura de resultado)."},
+{u:"U3", q:"¿Qué técnicas se utilizan para mitigar los riesgos (hazards) en un pipeline de instrucciones?", opts:["Forwarding, stalling y predicción de saltos","Aumentar exclusivamente la frecuencia de reloj","Eliminar por completo la unidad de control","Desactivar la caché L1"], correct:0, exp:"Los hazards de datos y de control en el pipeline se manejan típicamente con forwarding (reenvío de resultados), stalling (inserción de burbujas) y técnicas de predicción de saltos (branch prediction)."},
+{u:"U3", q:"¿Qué elemento del microprocesador contiene la dirección de la próxima instrucción a ejecutar?", opts:["El Registro de Instrucción (IR)","El Contador de Programa (PC)","El Acumulador (ACC)","El bus de control"], correct:1, exp:"El Program Counter (PC) almacena la dirección de memoria de la siguiente instrucción a buscar (fetch); tras cada fetch, normalmente se incrementa para apuntar a la instrucción posterior."},
+{u:"U3", q:"¿Cuáles son las dos formas principales de construir la Unidad de Control (UC) de un procesador?", opts:["Cableada (hardwired) y microprogramada","Digital y analógica","Sincrónica y asíncrona únicamente","Basada en RAM y basada en ROM exclusivamente"], correct:0, exp:"La UC puede implementarse de forma cableada, con circuitos lógicos fijos (más rápida, menos flexible), o microprogramada, mediante una memoria de control interna (más flexible ante conjuntos de instrucciones complejos)."},
+{u:"U3", q:"¿Cuántas señales utiliza el estándar JTAG (IEEE 1149.1) para la depuración/programación de hardware?", opts:["2 señales","4-5 señales (TCK, TMS, TDI, TDO, TRST)","8 señales obligatorias","1 señal única bidireccional"], correct:1, exp:"JTAG usa entre 4 y 5 señales: TCK (reloj), TMS (modo), TDI (entrada de datos), TDO (salida de datos) y opcionalmente TRST (reset), permitiendo encadenar varios dispositivos (daisy chain)."},
+{u:"U3", q:"¿Qué caracteriza al estándar SWD (Serial Wire Debug) frente a JTAG?", opts:["SWD requiere el doble de pines que JTAG","SWD usa solo 2 señales (SWDIO y SWDCLK), siendo el equivalente funcional de JTAG para procesadores ARM Cortex-M","SWD no permite acceso a memoria ni registros","SWD es exclusivo de microprocesadores x86"], correct:1, exp:"SWD es el estándar de depuración de ARM que reduce la interfaz a solo 2 señales (SWDIO para datos, SWDCLK para reloj), ofreciendo funcionalidad equivalente a JTAG con menos pines en el PCB."},
+{u:"U3", q:"¿Qué función cumple la ALU (Unidad Aritmético-Lógica) dentro del microprocesador?", opts:["Genera exclusivamente la señal de reloj","Realiza las operaciones aritméticas y lógicas sobre los datos","Almacena el programa completo en ejecución","Gestiona la comunicación serial UART"], correct:1, exp:"La ALU es el bloque encargado de ejecutar las operaciones aritméticas (suma, resta, etc.) y lógicas (AND, OR, XOR, etc.) requeridas por las instrucciones del programa."},
+{u:"U3", q:"¿Cuál es la función principal de una MMU (Memory Management Unit)?", opts:["Traducir direcciones virtuales a físicas y gestionar la protección de memoria","Generar directamente las señales de reloj del sistema","Sustituir por completo a la caché L1","Decodificar instrucciones aritméticas de punto flotante"], correct:0, exp:"La MMU traduce direcciones de memoria virtual a direcciones físicas reales y aplica mecanismos de protección y aislamiento entre procesos, siendo clave en sistemas operativos con memoria virtual."},
+{u:"U3", q:"¿Cuál es el propósito de la predicción de saltos (branch prediction) en un procesador segmentado (pipeline)?", opts:["Aumentar el tamaño de la caché L2","Reducir las burbujas/stalls del pipeline anticipando el resultado de saltos condicionales antes de resolverlos","Eliminar por completo la unidad de control","Aumentar el voltaje de operación del núcleo"], correct:1, exp:"Al anticipar si un salto condicional se tomará o no, el procesador puede seguir alimentando el pipeline con instrucciones especulativas, evitando detener (stall) la ejecución mientras se resuelve la condición real."},
+{u:"U3", q:"¿Cuál es el propósito principal del estándar MISRA-C en el desarrollo de software embebido?", opts:["Definir el juego de instrucciones de procesadores RISC","Establecer un conjunto de reglas de codificación en C orientadas a la seguridad y confiabilidad en sistemas críticos","Especificar el protocolo eléctrico de la interfaz SPI","Reemplazar al lenguaje ensamblador en microcontroladores"], correct:1, exp:"MISRA-C es un estándar de codificación que restringe y guía el uso del lenguaje C para reducir errores comunes y aumentar la seguridad, portabilidad y confiabilidad del software en sistemas embebidos críticos (automotriz, aeroespacial, etc.)."},
+{u:"U3", q:"¿A qué se refiere el 'modo de direccionamiento' de una instrucción en un microprocesador?", opts:["A la frecuencia de reloj del procesador","A la forma en que la instrucción especifica la ubicación de sus operandos (inmediato, directo, indirecto, por registro, etc.)","Al voltaje de alimentación del núcleo","Al número de núcleos físicos del chip"], correct:1, exp:"Los modos de direccionamiento definen cómo se calcula o especifica la dirección/valor de los operandos de una instrucción: inmediato (valor literal), directo (dirección explícita), indirecto (a través de un puntero) o por registro, entre otros."},
+{u:"U3", q:"Un pipeline moderno como el de Intel Skylake puede llegar a tener hasta:", opts:["2-3 etapas","5 etapas exactamente, nunca más","14-19 etapas","Más de 500 etapas"], correct:2, exp:"Mientras el pipeline clásico académico tiene 5 etapas, procesadores modernos de alto desempeño como Intel Skylake manejan pipelines de 14 a 19 etapas (y algunos diseños llegan hasta 20-31), permitiendo frecuencias de reloj más altas a costa de mayor complejidad en el manejo de hazards."},
+{u:"U3", q:"¿Qué representa el ciclo Fetch-Decode-Execute en un microprocesador?", opts:["El proceso repetitivo de buscar una instrucción en memoria, interpretarla y ejecutarla","Un algoritmo exclusivo de los microcontroladores AVR","El proceso de fabricación física del chip","Un protocolo de comunicación serial"], correct:0, exp:"Es el ciclo básico de funcionamiento de cualquier CPU: se busca (fetch) la instrucción en memoria apuntada por el PC, se decodifica (decode) para identificar la operación, y finalmente se ejecuta (execute), repitiéndose continuamente."},
+{u:"U3", q:"¿Qué microprocesadores/arquitecturas modernas ejemplifican el uso de Von Neumann según el compendio?", opts:["Microchip PIC32 y AVR ATmega","Intel Core, AMD Ryzen y Apple M-series","ARM Cortex-M exclusivamente","Ninguna arquitectura moderna usa Von Neumann"], correct:1, exp:"Los procesadores de propósito general de alto desempeño (PC, servidores) como Intel Core, AMD Ryzen y Apple M-series suelen seguir un modelo tipo Von Neumann (con jerarquía de caché), mientras que microcontroladores como PIC32 o AVR usan Harvard."},
+{u:"U3", q:"¿Qué es un 'hazard' de datos en el contexto de un pipeline de instrucciones?", opts:["Un error físico en la memoria caché","Una situación en la que una instrucción depende de un resultado que aún no ha sido calculado/escrito por una instrucción previa en el pipeline","Un fallo del oscilador de reloj","La imposibilidad de usar instrucciones RISC"], correct:1, exp:"Los hazards de datos ocurren cuando una instrucción necesita un operando que otra instrucción anterior en el pipeline todavía no ha producido; se resuelven con forwarding o insertando stalls (burbujas)."},
+{u:"U3", q:"¿Cuál fue el primer microprocesador comercial de la historia?", opts:["Intel Pentium (1993)","Intel 4004 (1971)","Motorola 68000 (1979)","ARM1 (1985)"], correct:1, exp:"El Intel 4004, lanzado en 1971, fue el primer microprocesador comercial de propósito general disponible en un solo chip, marcando el inicio de la línea de tiempo de la evolución de los microprocesadores."},
+{u:"U3", q:"Según la Ley de Moore, ¿qué tendencia describe históricamente la evolución de los microprocesadores?", opts:["El número de transistores en un chip se duplica aproximadamente cada 18-24 meses","La velocidad del bus de datos se reduce a la mitad cada año","El consumo energético se duplica cada 10 años","El tamaño físico del chip aumenta linealmente con el tiempo"], correct:0, exp:"La Ley de Moore (observación de Gordon Moore, 1965) señala que la cantidad de transistores que pueden integrarse en un chip a costo constante se duplica aproximadamente cada 18 a 24 meses, impulsando históricamente el aumento de rendimiento."},
+{u:"U3", q:"¿Cuáles son los niveles típicos de programación de un microprocesador, de más bajo a más alto nivel?", opts:["Lenguaje de alto nivel → ensamblador → lenguaje máquina","Lenguaje máquina → lenguaje ensamblador → lenguaje de alto nivel","HDL → lenguaje máquina → ensamblador","Solo existe un nivel de programación posible"], correct:1, exp:"La jerarquía va del lenguaje máquina (códigos binarios directamente ejecutados por la CPU), pasando por el ensamblador (mnemónicos que representan esas instrucciones), hasta los lenguajes de alto nivel (C, Python, etc.) que se traducen mediante compiladores/intérpretes."},
+{u:"U3", q:"¿Qué función cumplen los registros MAR (Memory Address Register) y MDR (Memory Data Register) en la arquitectura de un procesador?", opts:["MAR almacena la dirección de memoria a acceder; MDR almacena el dato leído o a escribir en esa dirección","Ambos almacenan exclusivamente instrucciones de salto","MAR controla el reloj; MDR controla el voltaje","Son registros exclusivos de los microcontroladores, no de microprocesadores"], correct:0, exp:"El MAR contiene la dirección de memoria que se va a leer o escribir, mientras el MDR contiene el dato que se transfiere hacia o desde esa dirección durante el ciclo de acceso a memoria."},
+{u:"U3", q:"¿Cuál es el propósito principal de la jerarquía de caché (L1, L2, L3) en un microprocesador moderno?", opts:["Aumentar el voltaje de alimentación del núcleo","Reducir la latencia de acceso a datos e instrucciones frecuentemente utilizados, mitigando el cuello de botella de acceso a la memoria principal","Reemplazar completamente a la memoria RAM","Sustituir a la Unidad de Control"], correct:1, exp:"La caché es una memoria pequeña y muy rápida ubicada cerca del núcleo (L1 la más rápida y pequeña, L3 la más grande y lenta de las tres) que almacena copias de datos/instrucciones de uso frecuente, reduciendo drásticamente los tiempos de acceso comparado con ir siempre a la memoria principal."},
+
+{u:"U3", q:"¿Qué es un 'stall' (burbuja) en el contexto de un pipeline de instrucciones?", opts:["Una técnica para aumentar la frecuencia de reloj","Una detención temporal del avance de ciertas instrucciones en el pipeline mientras se resuelve un hazard","Un tipo de instrucción exclusiva de arquitecturas CISC","Un error irreversible de hardware"], correct:1, exp:"Un stall inserta 'burbujas' (ciclos sin operación útil) en el pipeline para esperar a que se resuelva una dependencia de datos o de control, evitando que la instrucción avance con información incorrecta."},
+{u:"U3", q:"¿En qué consiste la técnica de 'forwarding' (bypass) en un pipeline segmentado?", opts:["Reenviar el resultado de una etapa directamente a otra etapa que lo necesita, sin esperar a que se escriba primero en el banco de registros","Aumentar el número de etapas del pipeline","Eliminar la unidad de control por completo","Desactivar la caché durante la ejecución"], correct:0, exp:"El forwarding conecta la salida de una etapa (p. ej. EX) directamente a la entrada de una etapa anterior que necesita ese resultado (p. ej. otra instrucción en EX o ID), evitando el retraso de esperar la escritura formal en el banco de registros."},
+{u:"U3", q:"¿Qué distingue a un procesador superescalar?", opts:["Solo puede ejecutar una instrucción a la vez, igual que un procesador escalar simple","Puede emitir y ejecutar más de una instrucción por ciclo de reloj utilizando múltiples unidades de ejecución en paralelo","No utiliza pipeline bajo ninguna circunstancia","Es exclusivo de microcontroladores de 8 bits"], correct:1, exp:"Un procesador superescalar cuenta con múltiples unidades de ejecución (ALU, FPU, etc.) que le permiten despachar y procesar más de una instrucción por ciclo de reloj, incrementando el throughput frente a un diseño escalar clásico."},
+{u:"U3", q:"¿Qué función cumple una sonda de depuración como el J-Link (SEGGER) o el ST-Link (STMicroelectronics)?", opts:["Actuar como interfaz de hardware entre la PC y el microcontrolador, permitiendo programar y depurar mediante JTAG/SWD","Generar la señal de reloj interna del microcontrolador","Sustituir por completo al compilador del proyecto","Medir el consumo de energía de la batería del sistema"], correct:0, exp:"Estas sondas de depuración conectan la PC (mediante USB) con el microcontrolador objetivo a través de interfaces como JTAG o SWD, permitiendo cargar el firmware, colocar breakpoints e inspeccionar registros y memoria en tiempo real."},
+{u:"U3", q:"¿Qué caracteriza a la ejecución fuera de orden (out-of-order execution) en un procesador moderno?", opts:["El procesador reordena la ejecución de instrucciones, adelantando aquellas cuyos operandos ya están listos, aunque no respete el orden original del programa, mejorando el throughput","Las instrucciones siempre se ejecutan exactamente en el orden en que aparecen en el código fuente","Es una técnica exclusiva de microcontroladores de bajo consumo","Elimina por completo la necesidad de una unidad de control"], correct:0, exp:"En la ejecución fuera de orden, el hardware analiza las dependencias entre instrucciones y ejecuta primero aquellas que tienen sus operandos disponibles, reordenando internamente el flujo (aunque el resultado final se presenta en el orden correcto), lo que reduce el impacto de los hazards de datos."},
+// ---------- UNIDAD 4: MICROCONTROLADORES ----------
+{u:"U4", q:"¿Cuál es la diferencia principal entre un microprocesador y un microcontrolador?", opts:["El microcontrolador integra en un solo chip la CPU, memoria y periféricos; el microprocesador requiere componentes externos para memoria y E/S","El microprocesador siempre es más lento","El microcontrolador no puede ejecutar interrupciones","No existe diferencia real entre ambos"], correct:0, exp:"El microcontrolador (MCU) integra CPU, memoria de programa (Flash), memoria de datos (SRAM), y periféricos (temporizadores, ADC, comunicación) en un único chip, mientras el microprocesador requiere memoria y periféricos externos conectados por bus."},
+{u:"U4", q:"¿Qué caracteriza a la arquitectura 'Harvard modificada', usada en la mayoría de MCU modernos?", opts:["Une completamente la memoria de datos y de programa en un solo espacio","Mantiene memorias físicamente separadas para datos y programa, pero permite acceder a constantes de la memoria de programa como si fueran datos mediante instrucciones especiales","Elimina por completo la memoria de programa","Solo existe en microprocesadores de escritorio"], correct:1, exp:"La Harvard modificada conserva la separación física entre memoria de programa y de datos (accesos simultáneos, mayor rendimiento) pero añade mecanismos para leer constantes almacenadas en la memoria de programa desde el espacio de datos, ganando flexibilidad."},
+{u:"U4", q:"¿Qué señales utiliza el protocolo I2C?", opts:["SDA y SCL","MOSI, MISO y SCK","TX y RX únicamente","CAN_H y CAN_L"], correct:0, exp:"I2C es un bus síncrono de solo 2 líneas: SDA (datos) y SCL (reloj), que soporta topología multi-maestro/multi-esclavo mediante direccionamiento de 7 bits."},
+{u:"U4", q:"¿Cuál es una diferencia clave entre SPI e I2C?", opts:["SPI usa más líneas (MOSI, MISO, SCK, CS) y suele ser más rápido; I2C usa solo 2 líneas y direccionamiento de esclavos, siendo más lento pero con menos pines","I2C siempre es más rápido que SPI","SPI no permite comunicación full-duplex","I2C no requiere ninguna línea de reloj"], correct:0, exp:"SPI utiliza 4 líneas típicas (MOSI, MISO, SCK y CS por cada esclavo) alcanzando mayores velocidades sin necesidad de direccionamiento, mientras I2C usa solo SDA y SCL con direccionamiento de dispositivos, a menor velocidad (100k/400k/1Mbps)."},
+{u:"U4", q:"Un ADC de 10 bits (como el del ATmega328P), ¿en cuántos niveles divide el rango de voltaje de referencia?", opts:["256 niveles","1024 niveles (2^10)","4096 niveles","10 niveles"], correct:1, exp:"Un ADC de n bits produce 2^n niveles de cuantización; para 10 bits: 2^10 = 1024 niveles. Con Vref=5V, la resolución sería aproximadamente 5V/1024 ≈ 4.88 mV por paso."},
+{u:"U4", q:"Un ADC de 12 bits, como el del STM32F103, con Vref = 3.3V, ¿cuántos niveles de cuantización ofrece?", opts:["1024 niveles","2048 niveles","4096 niveles (2^12)","65536 niveles"], correct:2, exp:"2^12 = 4096 niveles. Con Vref=3.3V, la resolución aproximada es 3.3V/4096 ≈ 0.81 mV por paso, notablemente más precisa que un ADC de 10 bits."},
+{u:"U4", q:"Para controlar la posición de un servomotor de 0° a 180° con una señal PWM de 50 Hz, ¿qué rango de ancho de pulso se utiliza típicamente?", opts:["Entre 1 ms y 2 ms","Entre 10 ms y 20 ms","Entre 1 µs y 2 µs","Un pulso fijo de 50 ms siempre"], correct:0, exp:"Los servomotores estándar interpretan pulsos de entre 1 ms (0°) y 2 ms (180°) dentro de un periodo de 20 ms (50 Hz); el ancho del pulso determina el ángulo del eje."},
+{u:"U4", q:"En un MCU AVR (ATmega), ¿qué controla el registro DDRx de un puerto GPIO?", opts:["La velocidad del bus SPI","La dirección de cada pin del puerto: entrada o salida","El valor analógico leído por el ADC","La frecuencia del oscilador interno"], correct:1, exp:"El registro DDRx (Data Direction Register) define, bit a bit, si cada pin del puerto correspondiente actúa como entrada (0) o como salida (1)."},
+{u:"U4", q:"¿Por qué es indispensable declarar como 'volatile' una variable compartida entre el programa principal y una rutina de interrupción (ISR) en C?", opts:["Porque de lo contrario el compilador puede optimizar y eliminar lecturas que considera innecesarias, ignorando que la ISR puede modificarla en cualquier momento","Porque 'volatile' aumenta la velocidad de ejecución","Porque es un requisito exclusivo del lenguaje Python","Porque sin 'volatile' la variable no puede declararse como global"], correct:0, exp:"El compilador, al no saber que una ISR puede modificar la variable de forma asíncrona, podría optimizar el código asumiendo que su valor no cambia entre lecturas; 'volatile' obliga a leerla de memoria cada vez, evitando ese error."},
+{u:"U4", q:"¿Cuál es una buena práctica al escribir una rutina de servicio de interrupción (ISR)?", opts:["Mantenerla lo más breve posible, evitando delays, espera activa (busy-wait) u operaciones de coma flotante pesadas","Incluir siempre un delay() largo al inicio","Realizar dentro de ella todo el procesamiento posible del programa","Nunca debe modificar ninguna variable"], correct:0, exp:"Una ISR larga puede bloquear la atención de otras interrupciones de mayor prioridad, comprometiendo la respuesta en tiempo real; por eso debe ser breve, delegando el procesamiento pesado al bucle principal mediante banderas."},
+{u:"U4", q:"¿Qué familia de microcontroladores se caracteriza por arquitectura Von Neumann de 16 bits y ultra bajo consumo, ideal para sensores alimentados por batería?", opts:["ESP32","MSP430 (Texas Instruments)","ARM Cortex-M","AVR"], correct:1, exp:"La familia MSP430 de Texas Instruments usa arquitectura Von Neumann de 16 bits y está optimizada para ultra bajo consumo energético, siendo muy usada en aplicaciones de sensores con batería de larga duración."},
+{u:"U4", q:"¿Qué caracteriza a la familia de microcontroladores ESP32 (Espressif)?", opts:["Arquitectura Xtensa de 32 bits con Wi-Fi y Bluetooth integrados, ideal para aplicaciones IoT","Arquitectura CISC de 8 bits sin conectividad","Uso exclusivo en sistemas automotrices con bus CAN","Ausencia total de periféricos de comunicación"], correct:0, exp:"El ESP32 usa un núcleo Xtensa LX6/LX7 de 32 bits e integra Wi-Fi y Bluetooth en el mismo chip, con un costo muy bajo, lo que lo hace muy popular en aplicaciones de Internet de las Cosas (IoT)."},
+{u:"U4", q:"¿Qué tipo de arquitectura y núcleo usa la familia 8051, ampliamente utilizada con fines educativos?", opts:["RISC de 32 bits con FPU","CISC de 8 bits","Xtensa de 32 bits","ARM Cortex-A de 64 bits"], correct:1, exp:"La familia 8051 es una arquitectura CISC clásica de 8 bits, ampliamente documentada y enseñada, aunque menos eficiente en throughput que las arquitecturas RISC modernas como AVR o ARM Cortex-M."},
+{u:"U4", q:"¿Qué caracteriza al bus CAN (Controller Area Network), usado en aplicaciones automotrices e industriales?", opts:["Señalización diferencial (CAN_H/CAN_L), típicamente a 1 Mbps, en topología de bus multi-nodo","Requiere una línea dedicada por cada nodo conectado","Es idéntico en velocidad y topología al protocolo I2C","No tolera ambientes con ruido eléctrico"], correct:0, exp:"CAN utiliza dos líneas diferenciales (CAN_H y CAN_L) que le dan alta inmunidad al ruido eléctrico, típicamente hasta 1 Mbps, en una topología de bus donde múltiples nodos pueden comunicarse sin un maestro fijo, siendo el estándar de facto en automoción e industria."},
+{u:"U4", q:"Para convertir una lectura cruda del ADC a voltaje en un ATmega328P (10 bits, Vref=5V), ¿qué fórmula se aplica?", opts:["V = valor_ADC × 1023 × 5", "V = (valor_ADC / 1023) × Vref","V = valor_ADC / Vref","V = Vref / valor_ADC"], correct:1, exp:"El voltaje se obtiene proporcionalmente: V = (valor_ADC / 1023) × Vref, ya que 1023 es el valor máximo posible en un ADC de 10 bits (0 a 1023 = 1024 niveles)."},
+{u:"U4", q:"¿Cuál es la utilidad principal de un framework de simulación/emulación como Renode en el desarrollo de sistemas embebidos?", opts:["Compilar código en lenguaje ensamblador exclusivamente","Simular o emular hardware embebido (MCU, periféricos) para probar firmware sin necesidad de la placa física","Sustituir el uso de un osciloscopio real","Programar directamente memorias EEPROM externas"], correct:1, exp:"Renode permite emular microcontroladores y sus periféricos en software, facilitando pruebas automatizadas, depuración e integración continua de firmware embebido sin depender del hardware físico."},
+{u:"U4", q:"En el ciclo de vida de comunicación I2C, ¿qué secuencia de eventos ocurre típicamente en una transacción de escritura?", opts:["STOP → datos → ACK → dirección → START","START → dirección + bit R/W → ACK → datos → ACK → STOP","Solo se envían datos sin condición de inicio ni fin","CLOCK → RESET → datos → CLOCK"], correct:1, exp:"Una transacción I2C típica de escritura comienza con la condición START, seguida de la dirección del esclavo más el bit R/W, un ACK de confirmación, luego el/los byte(s) de datos (cada uno con su ACK), y finaliza con la condición STOP."},
+{u:"U4", q:"¿Qué representa la 'resolución' de un ADC?", opts:["La velocidad máxima del bus de comunicación","La cantidad de niveles discretos en que se divide el rango de voltaje de entrada, determinada por el número de bits (2^n)","El voltaje máximo que soporta el microcontrolador","El número de canales analógicos disponibles físicamente"], correct:1, exp:"La resolución del ADC indica la precisión de la conversión analógico-digital y depende directamente del número de bits: a mayor número de bits, más niveles (2^n) y menor tamaño de paso de voltaje representable."},
+{u:"U4", q:"¿Cuál es la función de la memoria EEPROM en un microcontrolador, en comparación con la memoria Flash de programa?", opts:["La EEPROM permite guardar datos de configuración de forma persistente y reescribible byte a byte, mientras la Flash almacena el programa y suele escribirse por bloques/páginas","Ambas cumplen exactamente la misma función y son intercambiables","La EEPROM es volátil y pierde los datos al apagar el MCU","La Flash no puede almacenar código de programa"], correct:0, exp:"La EEPROM está pensada para almacenar pequeños datos de configuración o calibración que deben persistir y pueden reescribirse con frecuencia (byte a byte), mientras la Flash almacena el programa completo y normalmente se borra/escribe por bloques o páginas."},
+{u:"U4", q:"¿Para qué se utiliza un prescaler en un temporizador (timer) de un microcontrolador?", opts:["Para aumentar la resolución del ADC","Para dividir la frecuencia del reloj del sistema antes de que llegue al contador del timer, permitiendo medir intervalos de tiempo más largos","Para generar la señal de interrupción externa INT0","Para configurar el voltaje de referencia del ADC"], correct:1, exp:"El prescaler divide la frecuencia del reloj principal por un factor configurable (p. ej. 8, 64, 256, 1024) antes de alimentar al contador del timer, permitiendo generar bases de tiempo e intervalos de desbordamiento más largos sin cambiar el reloj del sistema."},
+{u:"U4", q:"¿Qué rango de voltaje de operación es típico en la mayoría de los microcontroladores modernos?", opts:["Entre 1.8 V y 5 V","Entre 12 V y 24 V","Entre 100 V y 220 V","Únicamente 9 V"], correct:0, exp:"La mayoría de los MCU modernos operan con voltajes reducidos, típicamente entre 1.8 V y 5 V, lo que favorece el bajo consumo energético y la compatibilidad con baterías y fuentes de bajo voltaje."},
+{u:"U4", q:"¿Qué elementos conforman típicamente el 'toolchain' (flujo de herramientas) de desarrollo para programar un microcontrolador?", opts:["Compilador, enlazador (linker) y programador/depurador de hardware","Solamente un editor de texto plano","Un único software todo-en-uno sin etapas separadas","Exclusivamente una hoja de cálculo para el código"], correct:0, exp:"El toolchain típico incluye un compilador (traduce el código fuente a código objeto), un enlazador/linker (combina módulos y genera el binario final) y una herramienta de programación/depuración (graba el binario en el MCU y permite depurar, p. ej. vía JTAG/SWD)."},
+{u:"U4", q:"¿Qué es una interrupción externa (INTx) en un microcontrolador?", opts:["Una señal generada internamente por el ADC al finalizar una conversión","Un evento provocado por un cambio de nivel o flanco en un pin GPIO configurado como fuente de interrupción, que suspende el programa principal para atenderlo","Un tipo de instrucción exclusiva del lenguaje ensamblador","Un error de compilación detectado en tiempo de ejecución"], correct:1, exp:"Las interrupciones externas se disparan por un evento físico en un pin (flanco de subida, bajada o cambio de nivel) configurado para ello, suspendiendo momentáneamente el programa principal para ejecutar la ISR correspondiente."},
+{u:"U4", q:"¿Qué diferencia al modo 'single conversion' del ADC frente al modo 'free running'?", opts:["En 'single conversion' se realiza una sola lectura tras activarse y luego se detiene; en 'free running' el ADC realiza conversiones continuas de forma automática","Ambos modos son idénticos en comportamiento","'Free running' solo existe en microcontroladores de 8 bits","'Single conversion' siempre es más rápido que 'free running'"], correct:0, exp:"En modo single conversion, el ADC realiza una única conversión al activarse y se detiene hasta la próxima activación manual; en modo free running, encadena conversiones sucesivas de forma automática sin intervención adicional del programa."},
+{u:"U4", q:"¿Qué es el 'debounce' (antirrebote) aplicado a pulsadores mecánicos en sistemas embebidos?", opts:["Una técnica de hardware o software para filtrar los rebotes eléctricos transitorios al presionar un botón, evitando lecturas erróneas múltiples","Un tipo de protocolo de comunicación serial","Una instrucción exclusiva del ADC","Un método para aumentar la velocidad del reloj del sistema"], correct:0, exp:"Los contactos mecánicos de un pulsador generan varios rebotes eléctricos en milisegundos al presionarse; el debounce (por hardware con un capacitor/RC, o por software con temporización) filtra esos rebotes para registrar una sola pulsación válida."},
+{u:"U4", q:"¿Por qué no se recomienda el uso de delay() en sistemas embebidos que deben atender varias tareas de forma aparentemente simultánea?", opts:["Porque delay() bloquea por completo la ejecución del programa durante ese tiempo, impidiendo atender otras tareas; se prefiere una temporización no bloqueante basada en millis()","Porque delay() consume más memoria RAM que cualquier otra función","Porque delay() no puede usarse junto con interrupciones bajo ninguna circunstancia","Porque delay() solo funciona en microcontroladores de 32 bits"], correct:0, exp:"delay() detiene por completo la ejecución del programa durante el tiempo indicado, bloqueando cualquier otra tarea; en sistemas con múltiples tareas 'simultáneas' se prefiere una técnica no bloqueante basada en comparar el tiempo transcurrido con millis(), permitiendo seguir ejecutando otras partes del código."},
+{u:"U4", q:"¿Qué protocolo de comunicación utiliza señalización diferencial de dos hilos (D+/D-) y es el estándar típico para conectar un microcontrolador a una PC?", opts:["I2C","SPI","USB","CAN"], correct:2, exp:"USB usa un par diferencial D+/D- para la transmisión de datos (además de alimentación), siendo el estándar más común para conectar dispositivos periféricos, incluyendo microcontroladores en modo HID, CDC (puerto serie virtual) o almacenamiento masivo."},
+];
+
+/* ============ ESTADO ============ */
+let session = [];      // 30 preguntas activas de esta ronda (con opciones ya barajadas)
+let current = 0;       // índice de la pregunta actual
+let answers = [];       // respuesta elegida por el usuario (índice) por pregunta, null si no respondida
+let revealed = [];      // si se mostró la respuesta de cada pregunta durante el intento
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+document.getElementById('bank-size-text').textContent = BANK.length;
+
+function buildSession(){
+  const picked = shuffle(BANK).slice(0, Math.min(30, BANK.length));
+  session = picked.map(item=>{
+    const optsWithFlag = item.opts.map((text,i)=>({text, isCorrect:i===item.correct}));
+    const shuffled = shuffle(optsWithFlag);
+    return {
+      u:item.u,
+      q:item.q,
+      exp:item.exp,
+      opts: shuffled.map(o=>o.text),
+      correctIndex: shuffled.findIndex(o=>o.isCorrect)
+    };
+  });
+  answers = new Array(session.length).fill(null);
+  revealed = new Array(session.length).fill(false);
+  current = 0;
+}
+
+function startExam(){
+  buildSession();
+  show('screen-exam');
+  renderRail();
+  renderQuestion();
+}
+
+function show(id){
+  ['screen-start','screen-exam','screen-results'].forEach(s=>{
+    document.getElementById(s).classList.toggle('hidden', s!==id);
+  });
+}
+
+function renderRail(){
+  const rail = document.getElementById('rail');
+  rail.innerHTML = '';
+  session.forEach((_,i)=>{
+    const d = document.createElement('div');
+    d.className = 'led' + (i===current ? ' now' : (answers[i]!==null ? ' done' : ''));
+    rail.appendChild(d);
+  });
+}
+
+const UNIT_NAMES = {U1:"Unidad 1 · Circuitos Secuenciales", U2:"Unidad 2 · PLD / CPLD / FPGA", U3:"Unidad 3 · Microprocesadores", U4:"Unidad 4 · Microcontroladores"};
+const LETTERS = ['A','B','C','D'];
+
+function renderQuestion(){
+  const item = session[current];
+  document.getElementById('q-unit').textContent = UNIT_NAMES[item.u];
+  document.getElementById('q-count').textContent = (current+1) + ' / ' + session.length;
+  document.getElementById('q-text').textContent = item.q;
+  const optsDiv = document.getElementById('q-opts');
+  optsDiv.innerHTML = '';
+  item.opts.forEach((text,i)=>{
+    const b = document.createElement('div');
+    b.className = 'opt' + (answers[current]===i ? ' selected' : '');
+    b.innerHTML = '<span class="tag">'+LETTERS[i]+'</span><span>'+text+'</span>';
+    b.onclick = ()=>selectOpt(i);
+    optsDiv.appendChild(b);
+  });
+  document.getElementById('btn-prev').disabled = current===0;
+  document.getElementById('btn-next').textContent = current===session.length-1 ? 'Finalizar ✔' : 'Siguiente ▶';
+  renderRail();
+  renderReveal();
+}
+
+function renderReveal(){
+  const item = session[current];
+  const panel = document.getElementById('reveal-panel');
+  const btn = document.getElementById('btn-reveal');
+  const isRevealed = revealed[current];
+  panel.classList.toggle('hidden', !isRevealed);
+  btn.classList.toggle('active', isRevealed);
+  btn.textContent = isRevealed ? 'Ocultar respuesta' : 'Ver respuesta';
+  if(isRevealed){
+    document.getElementById('rp-answer').textContent = LETTERS[item.correctIndex] + '. ' + item.opts[item.correctIndex];
+    document.getElementById('rp-exp').textContent = item.exp;
+  }
+}
+
+function toggleReveal(){
+  revealed[current] = !revealed[current];
+  renderReveal();
+}
+
+function selectOpt(i){
+  answers[current] = i;
+  renderQuestion();
+}
+
+function prevQ(){
+  if(current>0){ current--; renderQuestion(); }
+}
+
+function nextQ(){
+  if(current < session.length-1){
+    current++;
+    renderQuestion();
+  } else {
+    finishExam();
+  }
+}
+
+function finishExam(){
+  let score = 0;
+  const perUnit = {U1:{c:0,t:0},U2:{c:0,t:0},U3:{c:0,t:0},U4:{c:0,t:0}};
+  session.forEach((item,i)=>{
+    perUnit[item.u].t++;
+    if(answers[i]===item.correctIndex){ score++; perUnit[item.u].c++; }
+  });
+
+  const pct = Math.round((score/session.length)*100);
+  const scoreEl = document.getElementById('score-val');
+  scoreEl.textContent = score + '/' + session.length;
+  scoreEl.className = 'scoreval ' + (pct>=80 ? 'green' : pct>=60 ? 'amber' : 'red');
+  document.getElementById('score-pct').textContent = pct + '% de aciertos';
+
+  const grid = document.getElementById('unit-grid');
+  grid.innerHTML = '';
+  Object.keys(UNIT_NAMES).forEach(u=>{
+    const d = perUnit[u];
+    const card = document.createElement('div');
+    card.className = 'unitcard';
+    card.innerHTML = '<div class="u">'+UNIT_NAMES[u].split(' · ')[1]+'</div><div class="v">'+d.c+'/'+d.t+'</div>';
+    grid.appendChild(card);
+  });
+
+  const review = document.getElementById('review');
+  review.innerHTML = '<div class="qmeta" style="margin-bottom:10px;">Revisión completa</div>';
+  session.forEach((item,i)=>{
+    const ok = answers[i]===item.correctIndex;
+    const div = document.createElement('div');
+    div.className = 'revq';
+    let optsHtml = '';
+    item.opts.forEach((text,j)=>{
+      let cls = '';
+      if(j===item.correctIndex) cls='correct';
+      else if(j===answers[i] && !ok) cls='incorrect';
+      optsHtml += '<div class="revline"><b>'+LETTERS[j]+'.</b> '+text+(j===item.correctIndex?' ✓':(j===answers[i]&&!ok?' ✕':''))+'</div>';
+    });
+    div.innerHTML =
+      '<div class="rmeta"><span>'+UNIT_NAMES[item.u]+'</span><span class="'+(ok?'ok':'bad')+'">'+(ok?'✓ CORRECTA':(answers[i]===null?'○ SIN RESPONDER':'✕ INCORRECTA'))+'</span></div>'+
+      '<p class="qt">'+(i+1)+'. '+item.q+'</p>'+
+      optsHtml+
+      '<div class="explain">'+item.exp+'</div>';
+    review.appendChild(div);
+  });
+
+  show('screen-results');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+</script>
+</body>
+</html>

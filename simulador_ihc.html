@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador IHC · UTM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F3F5F8;
+    --panel: #FFFFFF;
+    --ink: #1C2333;
+    --ink-soft: #4B5468;
+    --line: #DCE1EA;
+    --violet: #6C5CE7;
+    --violet-deep: #4B3DC9;
+    --violet-tint: #EEEBFC;
+    --mint: #1FA971;
+    --mint-tint: #E4F7EE;
+    --amber: #DA9A2B;
+    --amber-tint: #FBF0DC;
+    --red: #E15656;
+    --red-tint: #FCEAEA;
+    --radius: 16px;
+    --shadow: 0 1px 2px rgba(28,35,51,.04), 0 8px 24px -12px rgba(28,35,51,.12);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 100% -10%, #ECE9FC 0%, transparent 55%),
+      radial-gradient(900px 500px at -10% 110%, #E3F6ED 0%, transparent 50%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Inter', system-ui, sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{ font-family:'Space Grotesk', sans-serif; letter-spacing:-0.01em; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+  a{color:inherit;}
+  button{font-family:inherit;}
+  :focus-visible{ outline:3px solid var(--violet); outline-offset:2px; border-radius:6px; }
+
+  .wrap{ max-width:880px; margin:0 auto; padding:32px 20px 64px; }
+  .topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand-mark{
+    width:34px; height:34px; border-radius:9px; background:linear-gradient(150deg, var(--violet), var(--violet-deep));
+    display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Space Grotesk'; font-weight:700; font-size:15px;
+    box-shadow: 0 6px 16px -6px rgba(108,92,231,.6);
+  }
+  .brand-text{ line-height:1.15; }
+  .brand-text b{ font-family:'Space Grotesk'; font-size:15px; }
+  .brand-text span{ display:block; font-size:11.5px; color:var(--ink-soft); }
+  .pill{
+    font-size:12px; font-weight:600; padding:6px 12px; border-radius:999px;
+    background:var(--violet-tint); color:var(--violet-deep); border:1px solid #DAD3FB;
+  }
+
+  /* ---------- HOME ---------- */
+  .hero{
+    background:var(--panel); border:1px solid var(--line); border-radius:24px; padding:36px 32px;
+    box-shadow:var(--shadow); position:relative; overflow:hidden;
+  }
+  .hero::before{
+    content:""; position:absolute; top:-60px; right:-60px; width:220px; height:220px; border-radius:50%;
+    background:radial-gradient(circle, rgba(108,92,231,.16), transparent 70%);
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:600; color:var(--violet-deep);
+    background:var(--violet-tint); padding:5px 11px; border-radius:999px; margin-bottom:16px;
+  }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--mint); box-shadow:0 0 0 3px var(--mint-tint); }
+  .hero h1{ font-size:30px; margin:0 0 10px; line-height:1.15; }
+  .hero p.lead{ color:var(--ink-soft); font-size:15.5px; line-height:1.6; max-width:60ch; margin:0 0 24px; }
+
+  .stat-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:22px 0 26px; }
+  .stat{ background:var(--bg); border:1px solid var(--line); border-radius:14px; padding:14px 14px; }
+  .stat b{ display:block; font-family:'Space Grotesk'; font-size:22px; }
+  .stat span{ font-size:11.5px; color:var(--ink-soft); }
+
+  .howto{ display:grid; gap:10px; margin-bottom:28px; }
+  .howto-item{ display:flex; gap:12px; align-items:flex-start; font-size:14px; color:var(--ink-soft); line-height:1.5; }
+  .howto-item .num{
+    flex:none; width:24px; height:24px; border-radius:7px; background:var(--ink); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; font-family:'Space Grotesk';
+  }
+  .howto-item b{ color:var(--ink); }
+
+  .btn{
+    appearance:none; border:none; cursor:pointer; font-weight:600; font-size:15px;
+    padding:14px 26px; border-radius:12px; display:inline-flex; align-items:center; gap:10px;
+    transition:transform .12s ease, box-shadow .12s ease, background .15s ease;
+  }
+  .btn:active{ transform:scale(.98); }
+  .btn-primary{
+    background:linear-gradient(135deg, var(--violet), var(--violet-deep)); color:#fff;
+    box-shadow:0 10px 24px -10px rgba(108,92,231,.65);
+  }
+  .btn-primary:hover{ box-shadow:0 14px 28px -10px rgba(108,92,231,.75); }
+  .btn-ghost{ background:var(--bg); color:var(--ink); border:1px solid var(--line); }
+  .btn-ghost:hover{ background:#EDEFF4; }
+  .btn-block{ width:100%; justify-content:center; }
+
+  .unit-legend{ display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
+  .unit-chip{ font-size:11.5px; font-weight:600; padding:5px 10px; border-radius:8px; background:var(--bg); border:1px solid var(--line); color:var(--ink-soft); }
+
+  .footnote{ text-align:center; font-size:12px; color:var(--ink-soft); margin-top:22px; }
+
+  /* ---------- EXAM ---------- */
+  .exam-panel{ background:var(--panel); border:1px solid var(--line); border-radius:22px; box-shadow:var(--shadow); padding:26px 26px 24px; }
+  .exam-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:12px; flex-wrap:wrap;}
+  .qcount{ font-family:'Space Grotesk'; font-size:14px; font-weight:600; color:var(--ink-soft); }
+  .unit-tag{ font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:7px; background:var(--violet-tint); color:var(--violet-deep); }
+
+  /* LED rail — signature element: visibilidad del estado del sistema */
+  .rail{ display:flex; gap:5px; overflow-x:auto; padding:4px 2px 14px; margin-bottom:6px; scrollbar-width:thin; }
+  .led{
+    flex:none; width:10px; height:10px; border-radius:50%; background:#D7DCE6; cursor:pointer;
+    transition:transform .15s ease, background .15s ease, box-shadow .15s ease; position:relative;
+  }
+  .led:hover{ transform:scale(1.25); }
+  .led.answered{ background:var(--mint); }
+  .led.current{ background:var(--violet); transform:scale(1.5); box-shadow:0 0 0 4px var(--violet-tint); }
+  .led.current.answered{ background:var(--violet); }
+
+  .qwrap{ padding:6px 2px 2px; }
+  .qtext{ font-size:18.5px; line-height:1.5; font-weight:600; margin:6px 0 20px; }
+  .options{ display:grid; gap:10px; margin-bottom:8px; }
+  .opt{
+    display:flex; align-items:flex-start; gap:12px; text-align:left; width:100%;
+    padding:13px 15px; border-radius:13px; border:1.5px solid var(--line); background:var(--bg);
+    cursor:pointer; font-size:14.5px; line-height:1.5; color:var(--ink);
+  }
+  .opt:hover{ border-color:#C9C2F5; background:#F8F7FE; }
+  .opt .letter{
+    flex:none; width:24px; height:24px; border-radius:7px; background:#fff; border:1.5px solid var(--line);
+    display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; font-family:'Space Grotesk'; color:var(--ink-soft);
+  }
+  .opt.selected{ border-color:var(--violet); background:var(--violet-tint); }
+  .opt.selected .letter{ background:var(--violet); border-color:var(--violet); color:#fff; }
+  .opt.correct{ border-color:var(--mint); background:var(--mint-tint); }
+  .opt.correct .letter{ background:var(--mint); border-color:var(--mint); color:#fff; }
+  .opt.wrong{ border-color:var(--red); background:var(--red-tint); }
+  .opt.wrong .letter{ background:var(--red); border-color:var(--red); color:#fff; }
+  .opt[disabled]{ cursor:default; }
+
+  .reveal{
+    margin-top:6px; padding:16px 17px; border-radius:14px; background:var(--mint-tint);
+    border:1px solid #BFEBD6; font-size:14px; line-height:1.6; color:#0F5C3C; display:none;
+  }
+  .reveal.show{ display:block; }
+  .reveal b{ display:block; margin-bottom:5px; font-family:'Space Grotesk'; font-size:13px; letter-spacing:.02em; text-transform:uppercase; }
+
+  .nav-row{ display:flex; align-items:center; gap:10px; margin-top:22px; }
+  .nav-row .btn{ flex:1; justify-content:center; }
+  .btn-icon{ padding:14px 18px; }
+  .btn[disabled]{ opacity:.4; cursor:not-allowed; box-shadow:none; }
+
+  /* ---------- RESULTS ---------- */
+  .score-hero{
+    background:linear-gradient(150deg, var(--ink) 0%, #2B3550 100%); color:#fff; border-radius:22px;
+    padding:34px 30px; text-align:center; box-shadow:var(--shadow); position:relative; overflow:hidden;
+  }
+  .score-hero::after{ content:""; position:absolute; inset:0; background:radial-gradient(600px 300px at 50% -20%, rgba(108,92,231,.35), transparent 60%); }
+  .score-hero .big{ font-family:'Space Grotesk'; font-size:58px; font-weight:700; position:relative; }
+  .score-hero .big span{ font-size:26px; color:#B8BEDA; font-weight:600; }
+  .score-hero .pct{ font-size:15px; color:#C7CCE6; margin-top:4px; position:relative; }
+  .score-hero .msg{ margin-top:14px; font-size:14.5px; color:#DEE1F2; position:relative; }
+
+  .breakdown{ display:grid; gap:10px; margin:22px 0; }
+  .bd-row{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:13px 16px; }
+  .bd-top{ display:flex; justify-content:space-between; font-size:13.5px; font-weight:600; margin-bottom:8px; }
+  .bd-top span.frac{ color:var(--ink-soft); font-weight:500; }
+  .bd-bar{ height:8px; border-radius:99px; background:var(--bg); overflow:hidden; }
+  .bd-fill{ height:100%; border-radius:99px; background:linear-gradient(90deg, var(--violet), var(--mint)); }
+
+  .review-item{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px 18px; margin-bottom:12px; }
+  .review-head{ display:flex; gap:10px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
+  .review-idx{ font-family:'Space Grotesk'; font-weight:700; font-size:13px; color:var(--ink-soft); }
+  .badge-ok{ font-size:11px; font-weight:700; color:#0F5C3C; background:var(--mint-tint); padding:3px 9px; border-radius:7px; }
+  .badge-bad{ font-size:11px; font-weight:700; color:#8C2222; background:var(--red-tint); padding:3px 9px; border-radius:7px; }
+  .review-q{ font-size:15px; font-weight:600; margin:0 0 10px; line-height:1.5; }
+  .review-line{ font-size:13.5px; margin:4px 0; line-height:1.55; }
+  .review-line b{ font-weight:700; }
+  .review-exp{ margin-top:10px; padding:12px 14px; border-radius:11px; background:var(--bg); font-size:13.5px; color:var(--ink-soft); line-height:1.6; }
+
+  .section-title{ font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft); margin:30px 0 12px; }
+
+  @media (max-width:560px){
+    .wrap{ padding:20px 14px 48px; }
+    .hero{ padding:26px 20px; }
+    .hero h1{ font-size:24px; }
+    .stat-row{ grid-template-columns:repeat(2,1fr); }
+    .qtext{ font-size:17px; }
+    .score-hero .big{ font-size:46px; }
+    .nav-row{ flex-wrap:wrap; }
+    .nav-row .btn-icon{ order:3; flex-basis:100%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+/* =========================================================
+   BANCO DE PREGUNTAS — Interacción Humano-Computador (UTM)
+   Basado en Compendios U1–U3, material semanal U4 y actividades
+   ========================================================= */
+const UNIT_NAMES = {
+  U1: "Unidad 1 · Fundamentos de la IHC",
+  U2: "Unidad 2 · Proceso de diseño de la interfaz",
+  U3: "Unidad 3 · Diseño Centrado en el Usuario",
+  U4: "Unidad 4 · Evaluación de interfaces (usabilidad y accesibilidad)"
+};
+
+// En cada pregunta, options[0] es SIEMPRE la respuesta correcta (se baraja en tiempo de ejecución)
+const QUESTION_BANK = [
+// ---------------- UNIDAD 1 ----------------
+{unit:"U1", q:"¿Qué significa la sigla HCI?", options:["Human Computer Interaction","Hardware Communication Interface","Human Control Interface","Human-Centric Innovation"], exp:"HCI es la disciplina que estudia el intercambio observable de información entre humanos y sistemas computacionales."},
+{unit:"U1", q:"Según el compendio de la Unidad 1, ¿qué diferencia a la interacción humano-computador de la interfaz de usuario?", options:["La interacción es el intercambio observable de información entre humano y sistema, mientras que la interfaz es el medio (software/hardware) que lo hace posible","No existe diferencia alguna entre ambos conceptos en ningún contexto","La interacción es solo hardware y la interfaz es solo software","La interfaz es un subconjunto exclusivo de la psicología cognitiva"], exp:"HCI se refiere al diálogo o comunicación en sí, y la interfaz es el medio que gestiona ese intercambio, aunque ambos términos suelen usarse como sinónimos."},
+{unit:"U1", q:"¿En qué década surgieron las interfaces de línea de comandos (CLI), asociadas a terminales y teclado?", options:["1970","1950","1990","2010"], exp:"En los años 70 dominaban los sistemas de tiempo compartido con interfaces orientadas a comandos, operadas por teclado."},
+{unit:"U1", q:"¿Qué hito tecnológico marcó el año 1981 en la evolución de la HCI?", options:["Xerox PARC y luego Apple popularizan la interfaz gráfica de usuario (ventanas, íconos y menús)","El nacimiento de la interfaz de línea de comandos","El lanzamiento del primer smartphone con pantalla táctil","La aparición de los primeros asistentes de voz"], exp:"Xerox PARC y Apple (Lisa y Macintosh) impulsaron la GUI, representando un gran avance hacia la usabilidad."},
+{unit:"U1", q:"La década de 2010 en la evolución de la HCI se caracteriza principalmente por...", options:["el auge de asistentes virtuales, el control por gestos y la realidad aumentada, con el diseño centrado en el usuario cobrando protagonismo","la aparición de las primeras interfaces de línea de comandos","la popularización exclusiva del mouse como único periférico","el nacimiento del lenguaje HTML"], exp:"En esta década se consolidan asistentes como Siri y Alexa, y el diseño UX/UI gana gran relevancia."},
+{unit:"U1", q:"Las interfaces cerebro-computadora (BCI), como las investigadas por proyectos del tipo Neuralink, buscan...", options:["una interacción directa entre el cerebro y los sistemas computacionales","sustituir por completo al teclado en entornos de oficina","mejorar exclusivamente el hardware de los monitores","reemplazar el uso de la voz en los asistentes virtuales"], exp:"Las BCI representan una línea de investigación futura de la HCI orientada a la conexión directa entre cerebro y sistema."},
+{unit:"U1", q:"¿Qué caracteriza a la interfaz orientada a comandos?", options:["Es puramente textual, exige que el usuario recuerde la sintaxis exacta y genera mayor tasa de errores","Utiliza exclusivamente íconos gráficos manipulables con el mouse","Es la interfaz más moderna y flexible disponible actualmente","No requiere ningún tipo de aprendizaje previo por parte del usuario"], exp:"Este tipo de interfaz, propio de los años 70, exige recordar comandos exactos y tiene una alta tasa de error de entrada."},
+{unit:"U1", q:"Las interfaces orientadas a menús se consideran más fáciles de usar que las basadas en comandos porque...", options:["la lectura y selección de opciones resulta más sencilla que recordar la sintaxis de comandos","eliminan por completo la necesidad de una pantalla","requieren obligatoriamente el uso simultáneo de teclado y mouse","no permiten ningún tipo de navegación entre pantallas"], exp:"Los estudios de factores humanos muestran que leer y elegir opciones es más simple que invocar comandos memorizados."},
+{unit:"U1", q:"Las interfaces basadas en comandos y las orientadas a menús se agrupan bajo la categoría de...", options:["Interfaces textuales","Interfaces icónicas","Interfaces tangibles","Interfaces adaptativas"], exp:"Ambas usan el texto como único medio de representación e interacción, mediante un diálogo secuencial."},
+{unit:"U1", q:"Una Interfaz Icónica se caracteriza por...", options:["usar el ícono, una imagen con significado semántico reconocible, como medio exclusivo de interacción","usar solo comandos de texto ingresados por teclado","requerir sensores corporales para funcionar","depender exclusivamente del reconocimiento de voz"], exp:"El ícono debe ser una imagen significativa y fácilmente reconocible por la comunidad de usuarios."},
+{unit:"U1", q:"Un asistente virtual como Alexa o Google Assistant es un ejemplo de...", options:["Interfaz de Voz (VUI)","Interfaz Tangible (TUI)","Interfaz Cerebro-Computadora (BCI)","Interfaz orientada a menús"], exp:"Las VUI usan tecnologías de reconocimiento y síntesis de voz para interactuar con el usuario."},
+{unit:"U1", q:"El Modelo Seeheim (1982) describe la interfaz de usuario mediante los componentes de...", options:["Presentación y Control de Diálogo","Front-end y Back-end","Cliente y Servidor","Hardware y Firmware"], exp:"El modelo distingue Presentación (mostrar información) y Control de Diálogo (flujo de interacción); en 1985 Mark Green añadió un tercer componente."},
+{unit:"U1", q:"Kinect y las aplicaciones de realidad aumentada que interpretan movimientos de manos y brazos corresponden a...", options:["Interfaces Basadas en Gestos","Interfaces de Voz","Interfaces orientadas a comandos","Interfaces Cerebro-Computadora"], exp:"Estas interfaces usan sensores o cámaras para interpretar gestos corporales específicos como comandos."},
+{unit:"U1", q:"Según ISO/IEC 9241, la usabilidad se define como...", options:["la efectividad, eficiencia y satisfacción con la que un producto alcanza objetivos específicos para sus usuarios","la cantidad de líneas de código que componen un sistema","el tiempo total invertido en el desarrollo de un software","el número de colores utilizados en el diseño de una interfaz"], exp:"Esta es la definición formal del estándar ISO/IEC 9241 citada en el compendio de la Unidad 1."},
+{unit:"U1", q:"ISO/IEC 9126 enfatiza que una GUI usable debe poseer características como...", options:["simplicidad, confiabilidad, flexibilidad, transparencia y ergonomía","velocidad, tamaño, peso y color","únicamente velocidad de carga en la red","exclusivamente compatibilidad con dispositivos móviles"], exp:"Estas cinco características deseables se detallan en el Tema 3 del compendio de la Unidad 1."},
+{unit:"U1", q:"Diseñar un formulario que solo pida datos esenciales (nombre y correo) y organizar el contenido de forma jerárquica corresponde a la característica de...", options:["Simplicidad","Confiabilidad","Ergonomía","Transparencia"], exp:"La simplicidad busca eliminar elementos innecesarios y enfocarse en lo esencial de la interfaz."},
+{unit:"U1", q:"Validar datos antes de procesarlos y mostrar el mensaje «Guardado correctamente» tras una acción corresponde a la característica de...", options:["Confiabilidad","Flexibilidad","Simplicidad","Ergonomía"], exp:"La confiabilidad busca que la GUI funcione correctamente y sin comportamientos inesperados."},
+{unit:"U1", q:"Ofrecer modo oscuro, atajos de teclado y soporte para múltiples dispositivos de entrada corresponde a la característica de...", options:["Flexibilidad","Transparencia","Confiabilidad","Simplicidad"], exp:"La flexibilidad permite que tanto principiantes como expertos usen la interfaz cómodamente en distintos contextos."},
+{unit:"U1", q:"El espaciado adecuado entre botones para evitar clics accidentales, junto con un buen contraste entre texto y fondo, corresponde a la característica de...", options:["Ergonomía","Transparencia","Simplicidad","Confiabilidad"], exp:"La ergonomía busca reducir el esfuerzo físico y cognitivo del usuario durante el uso de la interfaz."},
+{unit:"U1", q:"¿Quién es reconocido como el «padre de la usabilidad en la GUI» y definió los 10 principios heurísticos en 1990 junto a Rolf Molich?", options:["Jakob Nielsen","Donald Norman","Ben Shneiderman","Alan Dix"], exp:"Jakob Nielsen es citado en el compendio como el autor de los 10 principios de usabilidad, también llamados heurísticas."},
+{unit:"U1", q:"Una barra de progreso al subir un archivo, que informa al usuario sobre lo que está ocurriendo, ejemplifica la heurística de...", options:["Visibilidad del estado del sistema","Consistencia y estándares","Prevención de errores","Ayuda y documentación"], exp:"Esta heurística exige mantener informado al usuario mediante retroalimentación adecuada en un tiempo razonable."},
+{unit:"U1", q:"Usar el término «bandeja de entrada» en el correo electrónico, imitando una oficina real, ejemplifica la heurística de...", options:["Relación entre el sistema y el mundo real","Reconocimiento antes que recuerdo","Control y libertad del usuario","Estética y diseño minimalista"], exp:"Esta heurística exige que el sistema hable el idioma del usuario, siguiendo convenciones del mundo real."},
+{unit:"U1", q:"Un botón «Deshacer» tras eliminar un archivo, que permite al usuario salir de una acción no deseada, ejemplifica la heurística de...", options:["Control y libertad del usuario","Visibilidad del estado del sistema","Consistencia y estándares","Ayuda y documentación"], exp:"Esta heurística exige que los usuarios puedan deshacer y rehacer acciones fácilmente."},
+{unit:"U1", q:"Que los botones «Guardar» y «Cancelar» estén siempre ubicados en la misma posición en toda la aplicación ejemplifica la heurística de...", options:["Consistencia y estándares","Prevención de errores","Reconocimiento antes que recuerdo","Flexibilidad y eficiencia de uso"], exp:"Esta heurística indica que el usuario no debería preguntarse si distintas palabras o acciones significan lo mismo."},
+{unit:"U1", q:"Desactivar el botón «Enviar» cuando un formulario está incompleto, evitando que el error ocurra desde el inicio, ejemplifica la heurística de...", options:["Prevención de errores","Ayuda y documentación","Estética y diseño minimalista","Visibilidad del estado del sistema"], exp:"Es mejor prevenir el error mediante el diseño que depender únicamente de buenos mensajes de error."},
+{unit:"U1", q:"Mostrar sugerencias automáticas al escribir en una barra de búsqueda, minimizando la carga de memoria del usuario, ejemplifica la heurística de...", options:["Reconocimiento antes que recuerdo","Control y libertad del usuario","Consistencia y estándares","Ayuda y documentación"], exp:"Esta heurística busca hacer visibles objetos, acciones y opciones en lugar de exigir que el usuario recuerde información."},
+{unit:"U1", q:"Los atajos de teclado (Ctrl+S) para usuarios expertos, combinados con una interfaz simple para novatos, ejemplifican la heurística de...", options:["Flexibilidad y eficiencia de uso","Prevención de errores","Estética y diseño minimalista","Visibilidad del estado del sistema"], exp:"Esta heurística exige que tanto usuarios novatos como expertos puedan usar el sistema eficientemente."},
+{unit:"U1", q:"Un formulario que solo muestra información esencial, sin elementos irrelevantes que compitan por la atención del usuario, ejemplifica la heurística de...", options:["Estética y diseño minimalista","Reconocimiento antes que recuerdo","Ayuda y documentación","Control y libertad del usuario"], exp:"Cada unidad de información irrelevante disminuye la visibilidad de la información realmente importante."},
+{unit:"U1", q:"Un mensaje de error como «La contraseña es muy corta. Usa al menos 8 caracteres» ejemplifica la heurística de...", options:["Ayudar a los usuarios a reconocer, diagnosticar y recuperarse de errores","Consistencia y estándares","Visibilidad del estado del sistema","Flexibilidad y eficiencia de uso"], exp:"Los mensajes de error deben expresarse en lenguaje claro, indicando el problema y sugiriendo una solución."},
+{unit:"U1", q:"Un ícono de «?» que abre una guía rápida sobre el uso de la aplicación ejemplifica la heurística de...", options:["Ayuda y documentación","Prevención de errores","Estética y diseño minimalista","Control y libertad del usuario"], exp:"Aunque lo ideal es que el sistema se use sin documentación, esta debe estar disponible cuando se necesite."},
+{unit:"U1", q:"El undécimo principio, propuesto por expertos como complemento a los 10 de Nielsen, es...", options:["Accesibilidad","Portabilidad","Escalabilidad","Rentabilidad"], exp:"Este principio adicional exige que el diseño sea accesible para todos los usuarios, incluyendo personas con discapacidades."},
+
+// ---------------- UNIDAD 2 ----------------
+{unit:"U2", q:"En el ciclo de vida de diseño de una GUI, ¿en qué fase se plantean los primeros esquemas o wireframes de bajo nivel?", options:["Diseño conceptual","Diseño detallado","Mantenimiento","Análisis de requisitos"], exp:"El diseño conceptual define la interacción a nivel general y produce los primeros wireframes."},
+{unit:"U2", q:"La fase de «diseño detallado» del ciclo de vida de la GUI se enfoca en...", options:["la apariencia visual: botones, menús, ventanas, colores y tipografías, aplicando heurísticas de usabilidad","recopilar las necesidades iniciales de los usuarios del sistema","corregir errores del sistema tras su lanzamiento al público","realizar pruebas A/B con usuarios reales del producto final"], exp:"En esta fase se trabaja el detalle visual de la interfaz, aplicando principios de usabilidad."},
+{unit:"U2", q:"¿En qué fase del ciclo de vida de la GUI se realizan pruebas de usabilidad, entrevistas, test A/B y eye-tracking?", options:["Pruebas","Implementación","Análisis de requisitos","Mantenimiento"], exp:"La fase de pruebas recoge retroalimentación directa de los usuarios finales mediante distintas técnicas."},
+{unit:"U2", q:"La norma ISO 9241-210 sobre diseño centrado en el usuario propone un ciclo de...", options:["cuatro fases iterativas centradas en el usuario","dos fases lineales sin retroalimentación","seis fases exclusivamente técnicas","una única fase de implementación directa"], exp:"La norma plantea fases iterativas que garantizan que el producto final sea útil, usable y centrado en el usuario real."},
+{unit:"U2", q:"La fase de ISO 9241-210 en la que se investiga quiénes son los usuarios, qué tareas realizan y en qué entorno operan corresponde a...", options:["Entender y especificar el contexto de uso","Especificar los requisitos del usuario","Producir soluciones de diseño","Evaluar el diseño"], exp:"Esta fase inicial usa entrevistas, encuestas y observación para conocer a los usuarios y su entorno."},
+{unit:"U2", q:"La elicitación de requerimientos se define como...", options:["el proceso de recopilar información detallada de usuarios, stakeholders y expertos para definir las funcionalidades de una interfaz","la fase final de pruebas de aceptación del sistema","el proceso de codificar la lógica de negocio del sistema","la etapa de despliegue del sistema en producción"], exp:"Su objetivo es entender al usuario, sus tareas y sus expectativas visuales y de accesibilidad."},
+{unit:"U2", q:"¿Cuál de las siguientes NO es una técnica de elicitación de requerimientos mencionada en el compendio?", options:["Refactorización de código","Entrevistas","Observación directa","Talleres de co-diseño"], exp:"La refactorización de código es una práctica de desarrollo de software, no una técnica de elicitación de requerimientos de interfaz."},
+{unit:"U2", q:"Los requerimientos «no funcionales» de una GUI incluyen aspectos como...", options:["rendimiento (tiempos de respuesta) y accesibilidad (colores, lectores de pantalla)","únicamente los botones y formularios visibles en pantalla","solo la lógica de negocio interna del sistema","exclusivamente el número de usuarios registrados"], exp:"Los requerimientos no funcionales abarcan rendimiento y accesibilidad, a diferencia de los funcionales que definen acciones esperadas."},
+{unit:"U2", q:"La técnica de elicitación en la que se observa cómo los usuarios interactúan con sistemas similares se llama...", options:["Observación directa","Talleres de co-diseño","Storyboards","Casos de uso"], exp:"Consiste en ver directamente cómo los usuarios usan sistemas parecidos para inferir necesidades."},
+{unit:"U2", q:"¿Cuál de las siguientes herramientas se utiliza para automatizar pruebas de aceptación de una GUI?", options:["Selenium","Figma","Balsamiq","Photoshop"], exp:"Selenium, junto con Cypress, TestComplete y Appium, son herramientas para automatizar pruebas de aceptación de interfaces."},
+{unit:"U2", q:"El prototipado de interfaz se define como...", options:["el proceso de crear representaciones preliminares de una UI para visualizar, probar y validar su diseño antes de desarrollarla completamente","la etapa final de mantenimiento del sistema en producción","el proceso de escribir el código de producción definitivo","una técnica aplicable exclusivamente a aplicaciones móviles"], exp:"El prototipado permite reducir costos de rediseño al detectar errores en etapas tempranas."},
+{unit:"U2", q:"Un prototipo de baja fidelidad se caracteriza por...", options:["ser un boceto o wireframe simple, sin interacción avanzada, usado en etapas tempranas del diseño","ser idéntico al producto final con animaciones e interacciones reales","incluir siempre código funcional listo para producción","requerir obligatoriamente pruebas con más de 50 usuarios"], exp:"Los prototipos de baja fidelidad priorizan la rapidez sobre el detalle visual."},
+{unit:"U2", q:"Un prototipo de alta fidelidad se caracteriza por...", options:["ser muy similar al producto final, incluyendo interacciones, animaciones y contenido real","ser un simple boceto dibujado en papel","no permitir ningún tipo de prueba con usuarios reales","carecer por completo de navegación entre pantallas"], exp:"Es ideal para pruebas con usuarios o validación final antes del desarrollo completo."},
+{unit:"U2", q:"La técnica de prototipado que consiste en dibujos a mano alzada que representan pantallas o ideas se llama...", options:["Sketching","Storyboarding","Maquetado digital","Prototipado funcional"], exp:"El sketching usa trazos a mano alzada como forma rápida de representar ideas de interfaz."},
+{unit:"U2", q:"La técnica de prototipado que muestra una secuencia visual del flujo del usuario se llama...", options:["Storyboarding","Sketching","Wireframing","Prototipos en papel"], exp:"El storyboarding narra visualmente los pasos que sigue un usuario al interactuar con el sistema."},
+{unit:"U2", q:"¿Qué herramienta es reconocida por ser ideal para prototipos de baja fidelidad con estilo de boceto?", options:["Balsamiq Mockup","Figma","Axure RP","InVision"], exp:"Balsamiq está orientada específicamente a bocetos rápidos de baja fidelidad."},
+{unit:"U2", q:"¿Qué herramienta se destaca por ser ideal para prototipos colaborativos y en la nube?", options:["Figma","Sketch","Marvel App","Proto.io"], exp:"Figma permite colaboración en tiempo real y almacenamiento en la nube, siendo muy usada en la práctica profesional."},
+{unit:"U2", q:"¿Qué herramienta de diseño de interfaces es exclusiva para macOS?", options:["Sketch","Adobe XD","Axure RP","Balsamiq Mockup"], exp:"Sketch es popular en diseño de interfaces, pero solo está disponible para sistemas macOS."},
+{unit:"U2", q:"Una de las características del prototipado de interfaz, según el compendio, es que resulta «económico» porque...", options:["reduce costos de rediseño al detectar errores en etapas tempranas del proyecto","elimina por completo la necesidad de contar con programadores","no requiere ningún tipo de retroalimentación del usuario","obliga a construir siempre el producto final desde el inicio"], exp:"Detectar errores antes del desarrollo completo evita costosos rediseños posteriores."},
+{unit:"U2", q:"HTML5, lanzado en 2014, introdujo etiquetas como...", options:["<video>, <audio> y <canvas>","<table>, <form> y <font>","<marquee> y <blink>","únicamente <div> y <span>"], exp:"HTML5 revolucionó la web con etiquetas multimedia y mejoras para el desarrollo de aplicaciones web modernas."},
+{unit:"U2", q:"Las versiones HTML 3.2 y 4.01 (1997-1999) introdujeron principalmente...", options:["tablas, formularios y la separación entre estructura (HTML) y diseño (CSS)","las etiquetas de video y audio nativas","el modelo de cajas flexibles (Flexbox)","el uso de JavaScript por primera vez en la web"], exp:"Estas versiones agregaron nuevas etiquetas y comenzaron a separar estructura y presentación."},
+{unit:"U2", q:"¿Qué etiqueta HTML se usa para representar contenido independiente y autónomo, como una entrada de blog?", options:["<article>","<aside>","<nav>","<section>"], exp:"<article> agrupa contenido que tiene sentido por sí mismo, independiente del resto de la página."},
+{unit:"U2", q:"¿Qué etiqueta HTML agrupa contenido secundario o complementario, como un bloque de publicidad?", options:["<aside>","<header>","<footer>","<main>"], exp:"<aside> se usa para contenido relacionado pero no esencial respecto al contenido principal."},
+{unit:"U2", q:"¿Qué etiqueta semántica de HTML se utiliza específicamente como contenedor de navegación?", options:["<nav>","<section>","<div>","<span>"], exp:"<nav> agrupa enlaces de navegación principal dentro de un documento HTML5."},
+{unit:"U2", q:"¿Qué propiedad CSS controla el espacio dentro del borde de un elemento, entre el borde y su contenido?", options:["padding","margin","border","overflow"], exp:"padding define el espacio interno de un elemento, mientras que margin define el espacio externo."},
+{unit:"U2", q:"¿Qué propiedad CSS controla el espacio fuera del borde de un elemento, separándolo de otros elementos vecinos?", options:["margin","padding","box-shadow","position"], exp:"margin establece el espacio externo entre el borde del elemento y los elementos vecinos."},
+{unit:"U2", q:"¿Quién propuso el CSS en 1996 como una forma de separar el contenido del diseño, siendo adoptado luego por el W3C?", options:["Håkon Wium Lie","Tim Berners-Lee","Jakob Nielsen","Ben Shneiderman"], exp:"Håkon Wium Lie, ingeniero noruego, propuso CSS para separar el contenido HTML de su presentación visual."},
+{unit:"U2", q:"CSS3, desarrollado desde 2005 en adelante, se caracteriza por...", options:["no ser una sola versión sino una serie de módulos independientes, como transiciones, animaciones y flexbox","ser la primera versión de hojas de estilo jamás creada","eliminar por completo el uso de selectores de clase","requerir siempre JavaScript para poder funcionar"], exp:"CSS3 se compone de módulos independientes que permiten diseños más atractivos y responsivos."},
+{unit:"U2", q:"La propiedad CSS «display: flex» aplicada a un contenedor sirve para...", options:["activar el modelo de caja flexible (Flexbox) en ese contenedor","ocultar completamente el elemento de la página","definir el color de fondo del elemento","establecer la posición absoluta del elemento"], exp:"display: flex convierte al elemento en un contenedor flexible, habilitando propiedades como justify-content y align-items."},
+{unit:"U2", q:"En Flexbox, ¿qué propiedad del contenedor define la dirección de los ítems (row, column, row-reverse, column-reverse)?", options:["flex-direction","justify-content","align-items","flex-basis"], exp:"flex-direction determina si los elementos se alinean en fila o en columna, y en qué sentido."},
+{unit:"U2", q:"En Flexbox, la propiedad justify-content con el valor «space-between» produce que los elementos...", options:["se muestren con espacio entre ellos, sin espacio adicional en los extremos del contenedor","se agrupen todos al inicio del contenedor","se centren únicamente en el eje vertical","se distribuyan con espacio igual alrededor de cada uno, incluidos los extremos"], exp:"space-between reparte el espacio disponible entre los elementos, dejando los extremos pegados a los bordes del contenedor."},
+{unit:"U2", q:"Para centrar un elemento tanto horizontal como verticalmente dentro de un contenedor flex, se deben combinar las propiedades...", options:["justify-content: center y align-items: center","flex-direction: row y flex-wrap: wrap","flex-basis: 100px y order: 1","position: absolute y float: left"], exp:"justify-content centra en el eje principal y align-items centra en el eje transversal del contenedor flex."},
+{unit:"U2", q:"La propiedad align-self, aplicada a un ítem individual dentro de un contenedor flex, permite...", options:["alinear ese ítem específico de forma distinta al resto, sobrescribiendo el align-items del contenedor","cambiar la dirección de todos los ítems del contenedor a la vez","definir el color de fondo de todo el contenedor","ordenar automáticamente todos los elementos del contenedor"], exp:"align-self permite que un ítem particular tenga una alineación diferente a la definida por align-items en el contenedor."},
+{unit:"U2", q:"Los dos componentes generales de Flexbox son...", options:["el contenedor flexible (flex container) y los elementos flexibles (flex items)","el header y el footer de la página","el margin y el padding del documento","el grid y el canvas de dibujo"], exp:"Flexbox se compone de un contenedor que aplica display:flex y los ítems que se distribuyen dentro de él."},
+{unit:"U2", q:"La propiedad flex-basis en Flexbox especifica...", options:["la longitud inicial de un elemento flexible antes de aplicarse los ajustes de crecimiento o reducción","el color de fondo del contenedor flexible","la cantidad de columnas de una tabla HTML","el desplazamiento vertical del elemento en la página"], exp:"flex-basis define el tamaño base de un ítem antes de que flex-grow o flex-shrink lo modifiquen."},
+{unit:"U2", q:"El valor por defecto de justify-content, «flex-start», coloca los elementos...", options:["al principio del contenedor","al final del contenedor","distribuidos con espacio alrededor de cada uno","centrados dentro del contenedor"], exp:"flex-start es el valor predeterminado de justify-content y agrupa los ítems al inicio del eje principal."},
+
+// ---------------- UNIDAD 3 ----------------
+{unit:"U3", q:"El Diseño Centrado en el Usuario (DCU) se define como una metodología que se enfoca en...", options:["las necesidades, expectativas, limitaciones y preferencias del usuario final en cada etapa del proceso de diseño","exclusivamente los costos totales de desarrollo del sistema","el rendimiento del servidor donde se aloja la aplicación","la cantidad de líneas de código escritas por el equipo"], exp:"El DCU incorpora la participación activa del usuario desde las fases iniciales del proyecto."},
+{unit:"U3", q:"Según Díaz, Harari y Amadeo (2013), los principios del DCU establecen que el diseño debe partir de...", options:["un conocimiento profundo del usuario, sus metas y sus contextos de uso","un análisis exclusivo de la competencia en el mercado","una decisión unilateral tomada por el equipo de desarrollo","un prototipo de alta fidelidad ya completamente terminado"], exp:"El DCU exige comprender profundamente al usuario antes de proponer soluciones de diseño."},
+{unit:"U3", q:"El primer paso para elaborar una GUI basada en el DCU, según el compendio de la Unidad 3, es...", options:["el análisis de usuarios y contexto de uso","la implementación final del sistema","la evaluación post-implementación","el diseño detallado de colores y tipografías"], exp:"Este paso analiza quiénes son los usuarios, sus objetivos, entorno, tareas y limitaciones."},
+{unit:"U3", q:"Después del análisis de usuarios y contexto de uso, el siguiente paso del proceso DCU es...", options:["la recolección de requerimientos","la evaluación post-implementación","la iteración","el mantenimiento del sistema"], exp:"Se identifican necesidades funcionales y no funcionales a partir de la investigación previa de usuarios."},
+{unit:"U3", q:"En el paso de «diseño conceptual» dentro del proceso DCU se elaboran...", options:["ilustraciones generales de baja fidelidad para comprender las funcionalidades de la app","los servidores de producción del sistema final","contratos legales con los stakeholders del proyecto","pruebas automatizadas de regresión del software"], exp:"El diseño conceptual crea representaciones tempranas y sencillas antes de pasar al prototipado detallado."},
+{unit:"U3", q:"El paso «evaluación con usuarios» dentro del proceso DCU consiste en...", options:["probar los prototipos con usuarios reales para identificar problemas y oportunidades de mejora","escribir el código fuente definitivo del sistema","documentar la arquitectura del servidor de producción","definir el presupuesto total del proyecto"], exp:"Por ejemplo, observar a un grupo de usuarios reales completar una tarea con el prototipo y recoger su opinión."},
+{unit:"U3", q:"Si tras evaluar con usuarios se detecta que falta una opción importante (por ejemplo, agregar «Atrasado» y «Justificado» a un registro de asistencia), el paso del DCU que corresponde aplicar es...", options:["la iteración","la implementación","el análisis de usuarios","la recolección de requerimientos"], exp:"La iteración consiste en realizar rápidamente las mejoras detectadas durante la evaluación con usuarios."},
+{unit:"U3", q:"El paso final del proceso DCU, posterior a la implementación, es...", options:["la evaluación post-implementación","el diseño conceptual","la recolección de requerimientos","el análisis de usuarios"], exp:"En esta fase se recoge retroalimentación de los usuarios reales ya usando el sistema, mediante encuestas o entrevistas."},
+{unit:"U3", q:"La fase de «implementación» dentro del proceso DCU debe cuidar especialmente aspectos técnicos y de...", options:["accesibilidad","rentabilidad financiera","marketing digital","logística de entrega"], exp:"Se debe asegurar, por ejemplo, contraste adecuado, tamaño accesible de botones y adaptación a dispositivos móviles."},
+{unit:"U3", q:"En el DCU, ¿quiénes son responsables de la experiencia y la interfaz del usuario, buscando lograr un diseño intuitivo y útil?", options:["Los diseñadores UX/UI","Los stakeholders","Los usuarios finales","Los desarrolladores"], exp:"Los diseñadores UX/UI se enfocan específicamente en la experiencia y la interfaz del producto."},
+{unit:"U3", q:"En el DCU, ¿quiénes implementan técnicamente el sistema y necesitan conocer las necesidades del usuario para codificar soluciones adecuadas?", options:["Los desarrolladores","Los stakeholders","Los diseñadores UX/UI","Los usuarios finales"], exp:"Los desarrolladores traducen el diseño validado en un producto funcional."},
+{unit:"U3", q:"En el DCU, los interesados o patrocinadores del proyecto, como empresas o instituciones, se denominan...", options:["Stakeholders","Usuarios finales","Diseñadores UX/UI","Evaluadores heurísticos"], exp:"Los stakeholders son los interesados que financian o patrocinan el proyecto."},
+{unit:"U3", q:"Un método para identificar usuarios mediante conversación directa y preguntas estructuradas es...", options:["Encuestas y entrevistas","Análisis de mercado","Observación directa","Diagrama de interacción"], exp:"Las encuestas y entrevistas permiten recoger información directamente de los usuarios sobre sus necesidades."},
+{unit:"U3", q:"Las necesidades «no funcionales» en la identificación de necesidades del usuario incluyen aspectos como...", options:["tipografía, colores, efectos de transición y tiempo de espera","el registro de un nuevo producto en el sistema","la actualización de los datos de un producto existente","la eliminación de un registro específico"], exp:"Las necesidades no funcionales se refieren a cualidades del sistema más que a acciones concretas que este debe ejecutar."},
+{unit:"U3", q:"Las necesidades «contextuales» del usuario se refieren a...", options:["la situación o entorno en el que se usará el sistema","las acciones concretas que el sistema debe ejecutar","el presupuesto asignado al proyecto","el lenguaje de programación utilizado en el backend"], exp:"Comprenden el contexto físico, social o técnico donde el usuario interactuará con el sistema."},
+{unit:"U3", q:"Las necesidades «funcionales» del usuario se refieren a...", options:["lo que el usuario necesita que el sistema haga, como registrar o actualizar un producto","la tipografía y los colores utilizados en la interfaz","el tiempo de espera aceptable entre pantallas","el entorno físico donde se usará el sistema"], exp:"Las necesidades funcionales describen acciones o comportamientos concretos esperados del sistema."},
+{unit:"U3", q:"El resultado de aprendizaje de la Unidad 3 busca que el estudiante diseñe sistemas centrados en el usuario considerando, entre otros aspectos...", options:["las diferencias entre los modelos mentales de desarrolladores y usuarios","únicamente el rendimiento del servidor de producción","solo la seguridad informática del sistema","exclusivamente el diseño de la base de datos"], exp:"La Unidad 3 enfatiza la psicología cognitiva y los paradigmas de interacción más allá del mouse y el teclado."},
+{unit:"U3", q:"El diagrama de interacción usuario-máquina, estudiado en el Tema 9 de la Unidad 3, permite principalmente...", options:["representar visualmente el flujo de interacción entre el usuario y el sistema","calcular el costo total del proyecto de software","definir la paleta de colores institucional","documentar el código fuente del backend"], exp:"Este diagrama ayuda a visualizar cómo se relacionan las acciones del usuario con las respuestas del sistema."},
+{unit:"U3", q:"Los usuarios finales en el DCU pueden variar según el contexto, incluyendo perfiles como...", options:["niños, adultos mayores, técnicos y clientes","únicamente programadores senior","solamente administradores de sistemas","exclusivamente diseñadores gráficos"], exp:"Los usuarios finales son variados y dependen completamente del contexto de uso del producto."},
+{unit:"U3", q:"Los casos de estudio abordados en el Tema 10 de la Unidad 3 tienen como propósito principal...", options:["explicar a nivel de diagramas e interfaces situaciones reales propuestas en clase","sustituir por completo la evaluación heurística formal","reemplazar el prototipado de baja fidelidad","eliminar la necesidad de elicitar requerimientos"], exp:"Los casos de estudio permiten aplicar de forma práctica los conceptos de DCU vistos en la unidad."},
+
+// ---------------- UNIDAD 4 ----------------
+{unit:"U4", q:"La usabilidad se refiere a la facilidad con la que los usuarios interactúan con un sistema para alcanzar sus objetivos de manera...", options:["eficiente, eficaz y satisfactoria","rápida, económica y anónima","visual, sonora y táctil","segura, privada y encriptada"], exp:"Estos son los tres principios clave de la usabilidad descritos en los fundamentos teóricos de UX de la Unidad 4."},
+{unit:"U4", q:"La «eficacia» como principio clave de usabilidad se refiere a...", options:["el grado de precisión con que se logra el objetivo","la rapidez con la que el usuario completa una tarea","la experiencia positiva del usuario al usar el sistema","el número de colores usados en la interfaz"], exp:"La eficacia mide qué tan bien y con qué precisión se cumple el objetivo, a diferencia de la eficiencia (rapidez)."},
+{unit:"U4", q:"La «eficiencia» como principio clave de usabilidad se refiere a...", options:["la rapidez con la que el usuario completa las tareas","el grado de precisión con que se logra el objetivo","la satisfacción general que experimenta el usuario","la cantidad de pantallas que tiene el sistema"], exp:"La eficiencia se centra en el tiempo y el esfuerzo requerido para completar una tarea."},
+{unit:"U4", q:"Las WCAG 2.2 organizan sus criterios de éxito en cuatro principios conocidos por el acrónimo POUR. ¿Cuáles son?", options:["Perceptible, Operable, Comprensible y Robusto","Portable, Operativo, Usable y Rápido","Preciso, Original, Único y Responsivo","Práctico, Objetivo, Universal y Rentable"], exp:"POUR resume los cuatro principios fundamentales de accesibilidad web definidos por el W3C."},
+{unit:"U4", q:"El principio «Perceptible» de las WCAG exige, entre otros aspectos...", options:["etiquetas semánticas, texto alternativo y buen contraste","navegación completa mediante el teclado","lenguaje claro e instrucciones evidentes","compatibilidad con tecnologías de asistencia"], exp:"Este principio busca que la información pueda ser percibida por todos los usuarios, incluidos quienes usan lectores de pantalla."},
+{unit:"U4", q:"El principio «Operable» de las WCAG exige, entre otros aspectos...", options:["navegación con teclado, comandos por voz y enfoque visible","texto alternativo descriptivo en las imágenes","compatibilidad con tecnologías de asistencia","instrucciones evidentes y lenguaje claro"], exp:"Este principio asegura que todos los componentes de la interfaz puedan operarse, incluso sin usar un mouse."},
+{unit:"U4", q:"El principio «Comprensible» de las WCAG exige, entre otros aspectos...", options:["lenguaje claro e instrucciones evidentes","un buen contraste de color entre texto y fondo","navegación completa con el teclado","compatibilidad con lectores de pantalla"], exp:"Busca que tanto el contenido como el funcionamiento de la interfaz sean fáciles de entender."},
+{unit:"U4", q:"El principio «Robusto» de las WCAG exige que la interfaz sea...", options:["compatible con tecnologías de asistencia, como los lectores de pantalla","visualmente atractiva para cualquier usuario","rápida de cargar en cualquier tipo de dispositivo","económica de mantener a largo plazo"], exp:"La robustez garantiza que el contenido funcione correctamente con una amplia variedad de tecnologías de asistencia."},
+{unit:"U4", q:"El criterio de éxito WCAG 1.4.3 (Contraste mínimo) exige una razón de contraste mínima entre texto y fondo de...", options:["4.5:1","1:1","10:1","2:1"], exp:"Este criterio de «Contraste mínimo» establece 4.5:1 como razón mínima entre el color del texto y el fondo."},
+{unit:"U4", q:"El criterio 2.5.8 (Tamaño mínimo del objetivo), incorporado específicamente en WCAG 2.2, exige un área táctil mínima de...", options:["24x24 píxeles","8x8 píxeles","100x100 píxeles","1x1 píxel"], exp:"Este nuevo criterio de WCAG 2.2 busca que los elementos interactivos sean fáciles de pulsar sin errores."},
+{unit:"U4", q:"El criterio 2.4.7 (Foco visible) de las WCAG exige que...", options:["el elemento que tiene el foco del teclado sea visualmente identificable","todos los textos de la página estén subrayados","el fondo de la página sea siempre de color blanco","los formularios se envíen de forma automática"], exp:"El foco visible permite que un usuario que navega con teclado sepa siempre en qué elemento se encuentra."},
+{unit:"U4", q:"¿Qué herramienta automática permite verificar el contraste entre fondo y texto, cumpliendo los niveles A, AA y AAA de WCAG?", options:["Color Contrast Analyzer (TPG)","Tota11y","Siteimprove Accessibility Checker","Selenium"], exp:"Esta herramienta está especializada en medir la razón de contraste entre colores de texto y fondo."},
+{unit:"U4", q:"¿Qué herramienta es ideal para identificar visualmente errores de accesibilidad en vivo dentro de una página web?", options:["Tota11y","Cypress","Axure RP","Balsamiq"], exp:"Tota11y ofrece una visualización en vivo de los errores de accesibilidad detectados en la página."},
+{unit:"U4", q:"Una herramienta que ofrece evaluación técnica y visual con sugerencias detalladas, disponible como extensión de navegador, es...", options:["Siteimprove Accessibility Checker","Balsamiq Mockup","InVision","Adobe XD"], exp:"Siteimprove combina análisis técnico y visual, con recomendaciones detalladas de mejora en accesibilidad."},
+{unit:"U4", q:"La evaluación de accesibilidad como metodología de evaluación de GUI se caracteriza por...", options:["usar herramientas automáticas y manuales, enfocándose en personas con discapacidad","requerir siempre laboratorios especializados de eye-tracking","excluir por completo estándares como las WCAG","ser aplicable únicamente a aplicaciones móviles"], exp:"Esta metodología busca asegurar la inclusión y el cumplimiento normativo mediante herramientas automáticas y evaluación manual."},
+{unit:"U4", q:"El daltonismo es un trastorno visual...", options:["hereditario que afecta la percepción de los colores","contagioso que afecta la agudeza visual general","temporal, causado únicamente por el estrés visual","exclusivo de la percepción del contraste de brillo"], exp:"El daltonismo se produce por un defecto en los conos de la retina, encargados de captar el color."},
+{unit:"U4", q:"El término «daltonismo» proviene de...", options:["John Dalton, científico británico que describió su propia dificultad para distinguir colores","Thomas Young, físico que estudió la teoría tricromática del color","Isaac Newton, quien descompuso la luz blanca en un prisma","Charles Darwin, naturalista británico"], exp:"John Dalton documentó en el siglo XVIII su propia dificultad para distinguir colores, siendo uno de los primeros casos registrados."},
+{unit:"U4", q:"El daltonismo suele ser hereditario y está ligado principalmente al...", options:["cromosoma X","cromosoma Y","cromosoma 21","ADN mitocondrial"], exp:"El daltonismo hereditario deriva de la combinación de alelos ligados al cromosoma X."},
+{unit:"U4", q:"La protanopía se caracteriza por...", options:["no percibir el color rojo, que se ve como marrón oscuro o gris","no percibir el color verde","no percibir el color azul","percibir únicamente tonos de gris"], exp:"La protanopía es una forma de dicromatismo por ausencia total del cono sensible al rojo."},
+{unit:"U4", q:"La deuteranopía se caracteriza por...", options:["no percibir el color verde, confundiéndolo frecuentemente con el rojo","no percibir el color azul","no percibir el color rojo","percibir solo tonalidades de gris"], exp:"En la deuteranopía, rojo y verde suelen confundirse, apareciendo en tonos marrones o beige."},
+{unit:"U4", q:"La tritanopía, considerada muy poco común, se caracteriza por...", options:["no percibir el color azul, confundiéndolo con el amarillo","no percibir el color rojo","no percibir el color verde","percibir todos los colores con total normalidad"], exp:"La tritanopía es la forma de dicromatismo menos frecuente, por ausencia del cono sensible al azul."},
+{unit:"U4", q:"La acromatía, forma poco común de daltonismo, se caracteriza por...", options:["percibir únicamente tonalidades de gris","confundir solamente el rojo y el verde","no percibir exclusivamente el color azul","una leve dificultad para distinguir tonos pastel"], exp:"La acromatía implica la falta total de percepción de color, quedando solo la escala de grises."},
+{unit:"U4", q:"Dentro del tricromatismo anómalo, la forma más frecuente de daltonismo es...", options:["la deuteranomalía, dificultad para distinguir el verde","la tritanomalía, dificultad para distinguir el azul","la protanomalía, dificultad para distinguir el rojo","el monocromatismo total"], exp:"La deuteranomalía, alteración del cono verde, es la forma más común de daltonismo según el material del curso."},
+{unit:"U4", q:"El test de Ishihara diagnostica el daltonismo mediante...", options:["láminas con números formados por puntos de diferentes colores","electrodos colocados directamente en la retina","cuestionarios escritos sobre hábitos visuales","resonancias magnéticas cerebrales"], exp:"Es la prueba más común y accesible para detectar deficiencias en la percepción del color."},
+{unit:"U4", q:"La anomaloscopía, como método de detección del daltonismo, se caracteriza por...", options:["medir la percepción del color de forma más precisa que otras pruebas","ser un examen exclusivamente genético","sustituir por completo al test de Ishihara en todos los casos","evaluar únicamente la agudeza visual, no el color"], exp:"La anomaloscopía ofrece una medición más precisa y detallada de la percepción cromática que el test de Ishihara."},
+];
+
+/* =========================================================
+   LÓGICA DEL SIMULADOR
+   ========================================================= */
+const TOTAL_QUESTIONS = 30;
+let state = { screen: "home", questions: [], current: 0, answers: [], revealed: false };
+
+function escapeHtml(str){
+  return String(str)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;");
+}
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function buildAttempt(){
+  const picked = shuffle(QUESTION_BANK).slice(0, TOTAL_QUESTIONS);
+  state.questions = picked.map(item=>{
+    const correctText = item.options[0];
+    const shuffledOpts = shuffle(item.options);
+    return {
+      unit: item.unit,
+      q: item.q,
+      exp: item.exp,
+      options: shuffledOpts,
+      correctIndex: shuffledOpts.indexOf(correctText)
+    };
+  });
+  state.current = 0;
+  state.answers = new Array(TOTAL_QUESTIONS).fill(null);
+  state.revealed = false;
+  state.screen = "exam";
+  render();
+}
+
+function countByUnit(){
+  const counts = {U1:0,U2:0,U3:0,U4:0};
+  QUESTION_BANK.forEach(q=>counts[q.unit]++);
+  return counts;
+}
+
+function selectOption(qIndex, optIndex){
+  if(state.answers[qIndex] !== null) return; // ya respondida, no cambia
+  state.answers[qIndex] = optIndex;
+  render();
+}
+
+function toggleReveal(){
+  state.revealed = !state.revealed;
+  render();
+}
+
+function goTo(index){
+  if(index < 0 || index >= state.questions.length) return;
+  state.current = index;
+  state.revealed = false;
+  render();
+}
+
+function finishExam(){
+  state.screen = "results";
+  render();
+}
+
+function newAttempt(){
+  buildAttempt();
+}
+
+function backHome(){
+  state.screen = "home";
+  render();
+}
+
+/* ---------------- RENDER ---------------- */
+function render(){
+  const app = document.getElementById("app");
+  if(state.screen === "home") app.innerHTML = renderHome();
+  else if(state.screen === "exam") app.innerHTML = renderExam();
+  else app.innerHTML = renderResults();
+  attachEvents();
+  window.scrollTo({top:0, behavior:"instant"});
+}
+
+function renderHome(){
+  const counts = countByUnit();
+  return `
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">IHC</div>
+        <div class="brand-text"><b>Simulador IHC</b><span>Interacción Humano-Computador · UTM</span></div>
+      </div>
+      <span class="pill">${QUESTION_BANK.length} preguntas en el banco</span>
+    </div>
+
+    <div class="hero">
+      <span class="eyebrow"><span class="dot"></span> Visibilidad del estado del sistema</span>
+      <h1>Prepárate para el examen de IHC</h1>
+      <p class="lead">Un simulacro de práctica basado en los compendios de las 4 unidades de la asignatura: fundamentos de HCI, proceso de diseño de interfaces (HTML, CSS y Flexbox), diseño centrado en el usuario, y evaluación de usabilidad y accesibilidad.</p>
+
+      <div class="stat-row">
+        <div class="stat"><b>30</b><span>preguntas por intento</span></div>
+        <div class="stat"><b>4</b><span>opciones por pregunta</span></div>
+        <div class="stat"><b>4</b><span>unidades cubiertas</span></div>
+        <div class="stat"><b>∞</b><span>intentos, siempre distintos</span></div>
+      </div>
+
+      <div class="howto">
+        <div class="howto-item"><span class="num">1</span><span>Cada intento sortea <b>30 preguntas al azar</b> del banco y baraja el orden de las 4 opciones en cada una.</span></div>
+        <div class="howto-item"><span class="num">2</span><span>Navega con <b>Anterior</b> y <b>Siguiente</b>. Usa <b>Ver respuesta</b> para revisar el literal correcto y su explicación sin perder tu selección.</span></div>
+        <div class="howto-item"><span class="num">3</span><span>Al finalizar verás tu <b>nota sobre 30</b>, el porcentaje de aciertos, el desglose por unidad y la revisión completa de cada pregunta.</span></div>
+      </div>
+
+      <button class="btn btn-primary btn-block" id="startBtn">Iniciar simulacro →</button>
+
+      <div class="unit-legend">
+        <span class="unit-chip">U1 · Fundamentos — ${counts.U1} preguntas</span>
+        <span class="unit-chip">U2 · Proceso de diseño — ${counts.U2} preguntas</span>
+        <span class="unit-chip">U3 · DCU — ${counts.U3} preguntas</span>
+        <span class="unit-chip">U4 · Evaluación (usabilidad/accesibilidad) — ${counts.U4} preguntas</span>
+      </div>
+    </div>
+    <p class="footnote">Contenido elaborado a partir de los compendios y material semanal de la asignatura. Uso exclusivo como apoyo de estudio.</p>
+  `;
+}
+
+function renderExam(){
+  const idx = state.current;
+  const total = state.questions.length;
+  const item = state.questions[idx];
+  const answered = state.answers[idx];
+  const isLast = idx === total - 1;
+
+  const rail = state.questions.map((_,i)=>{
+    let cls = "led";
+    if(state.answers[i] !== null) cls += " answered";
+    if(i === idx) cls += " current";
+    return `<div class="${cls}" data-goto="${i}" title="Pregunta ${i+1}${state.answers[i]!==null?' · respondida':''}"></div>`;
+  }).join("");
+
+  const opts = item.options.map((opt,i)=>{
+    let cls = "opt";
+    let disabled = "";
+    if(answered !== null){
+      disabled = "disabled";
+      if(i === item.correctIndex) cls += " correct";
+      else if(i === answered) cls += " wrong";
+    }
+    return `<button class="${cls}" data-opt="${i}" ${disabled}>
+        <span class="letter">${String.fromCharCode(65+i)}</span>
+        <span>${escapeHtml(opt)}</span>
+      </button>`;
+  }).join("");
+
+  return `
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">IHC</div>
+        <div class="brand-text"><b>Simulacro en curso</b><span>Responde y navega libremente entre preguntas</span></div>
+      </div>
+      <span class="pill">${state.answers.filter(a=>a!==null).length}/${total} respondidas</span>
+    </div>
+
+    <div class="exam-panel">
+      <div class="exam-head">
+        <span class="qcount">Pregunta ${idx+1} de ${total}</span>
+        <span class="unit-tag">${UNIT_NAMES[item.unit]}</span>
+      </div>
+
+      <div class="rail">${rail}</div>
+
+      <div class="qwrap">
+        <p class="qtext">${escapeHtml(item.q)}</p>
+        <div class="options">${opts}</div>
+        <div class="reveal ${state.revealed ? 'show':''}">
+          <b>Respuesta correcta y justificación</b>
+          ${String.fromCharCode(65+item.correctIndex)}. ${escapeHtml(item.options[item.correctIndex])} — ${escapeHtml(item.exp)}
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" id="prevBtn" ${idx===0?'disabled':''}>← Anterior</button>
+        <button class="btn btn-ghost btn-icon" id="revealBtn">${state.revealed ? 'Ocultar respuesta' : 'Ver respuesta'}</button>
+        ${isLast
+          ? `<button class="btn btn-primary" id="finishBtn">Finalizar →</button>`
+          : `<button class="btn btn-primary" id="nextBtn">Siguiente →</button>`}
+      </div>
+    </div>
+  `;
+}
+
+function renderResults(){
+  const total = state.questions.length;
+  let correct = 0;
+  const byUnit = {U1:{c:0,t:0}, U2:{c:0,t:0}, U3:{c:0,t:0}, U4:{c:0,t:0}};
+  state.questions.forEach((item,i)=>{
+    byUnit[item.unit].t++;
+    if(state.answers[i] === item.correctIndex){ correct++; byUnit[item.unit].c++; }
+  });
+  const score30 = correct;
+  const pct = Math.round((correct/total)*100);
+  let msg = "Sigue repasando: revisa con calma las explicaciones de cada unidad.";
+  if(pct >= 90) msg = "Excelente dominio del contenido. Estás listo para el examen.";
+  else if(pct >= 75) msg = "Muy buen resultado. Refuerza los temas donde fallaste.";
+  else if(pct >= 60) msg = "Vas por buen camino. Repasa las unidades con menor puntaje.";
+
+  const breakdown = Object.keys(byUnit).map(u=>{
+    const {c,t} = byUnit[u];
+    const p = t ? Math.round((c/t)*100) : 0;
+    return `
+      <div class="bd-row">
+        <div class="bd-top"><span>${UNIT_NAMES[u]}</span><span class="frac">${c}/${t}</span></div>
+        <div class="bd-bar"><div class="bd-fill" style="width:${p}%"></div></div>
+      </div>`;
+  }).join("");
+
+  const review = state.questions.map((item,i)=>{
+    const ans = state.answers[i];
+    const ok = ans === item.correctIndex;
+    const answeredText = ans === null ? "Sin responder" : `${String.fromCharCode(65+ans)}. ${escapeHtml(item.options[ans])}`;
+    return `
+      <div class="review-item">
+        <div class="review-head">
+          <span class="review-idx">P${i+1}</span>
+          <span class="unit-tag">${item.unit}</span>
+          <span class="${ok?'badge-ok':'badge-bad'}">${ok ? 'Correcta' : 'Incorrecta'}</span>
+        </div>
+        <p class="review-q">${escapeHtml(item.q)}</p>
+        <p class="review-line">Tu respuesta: <b>${answeredText}</b></p>
+        <p class="review-line">Respuesta correcta: <b>${String.fromCharCode(65+item.correctIndex)}. ${escapeHtml(item.options[item.correctIndex])}</b></p>
+        <div class="review-exp">${escapeHtml(item.exp)}</div>
+      </div>`;
+  }).join("");
+
+  return `
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">IHC</div>
+        <div class="brand-text"><b>Resultados del simulacro</b><span>Revisión completa de tu intento</span></div>
+      </div>
+      <button class="btn btn-ghost" id="homeBtn">Inicio</button>
+    </div>
+
+    <div class="score-hero">
+      <div class="big">${score30}<span> / ${total}</span></div>
+      <div class="pct">${pct}% de aciertos</div>
+      <div class="msg">${msg}</div>
+    </div>
+
+    <div class="section-title">Desglose por unidad</div>
+    <div class="breakdown">${breakdown}</div>
+
+    <button class="btn btn-primary btn-block" id="retryBtn">Nuevo simulacro (30 preguntas nuevas) ↻</button>
+
+    <div class="section-title">Revisión completa</div>
+    ${review}
+
+    <button class="btn btn-primary btn-block" id="retryBtn2">Nuevo simulacro (30 preguntas nuevas) ↻</button>
+  `;
+}
+
+function attachEvents(){
+  const startBtn = document.getElementById("startBtn");
+  if(startBtn) startBtn.addEventListener("click", buildAttempt);
+
+  document.querySelectorAll(".led").forEach(el=>{
+    el.addEventListener("click", ()=> goTo(parseInt(el.dataset.goto,10)));
+  });
+
+  document.querySelectorAll(".opt").forEach(el=>{
+    el.addEventListener("click", ()=> selectOption(state.current, parseInt(el.dataset.opt,10)));
+  });
+
+  const revealBtn = document.getElementById("revealBtn");
+  if(revealBtn) revealBtn.addEventListener("click", toggleReveal);
+
+  const prevBtn = document.getElementById("prevBtn");
+  if(prevBtn) prevBtn.addEventListener("click", ()=> goTo(state.current-1));
+
+  const nextBtn = document.getElementById("nextBtn");
+  if(nextBtn) nextBtn.addEventListener("click", ()=> goTo(state.current+1));
+
+  const finishBtn = document.getElementById("finishBtn");
+  if(finishBtn) finishBtn.addEventListener("click", finishExam);
+
+  const retryBtn = document.getElementById("retryBtn");
+  if(retryBtn) retryBtn.addEventListener("click", newAttempt);
+  const retryBtn2 = document.getElementById("retryBtn2");
+  if(retryBtn2) retryBtn2.addEventListener("click", newAttempt);
+
+  const homeBtn = document.getElementById("homeBtn");
+  if(homeBtn) homeBtn.addEventListener("click", backHome);
+}
+
+render();
+</script>
+</body>
+</html>
