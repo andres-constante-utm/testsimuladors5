@@ -35,11 +35,12 @@
   .wrap{max-width:760px;margin:0 auto;}
 
   /* header */
-  .hdr{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:6px;flex-wrap:wrap;}
-  .hdr .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;color:var(--cyan);text-transform:uppercase;}
-  .hdr h1{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:800;margin:2px 0 0;letter-spacing:-.01em;}
-  .hdr .unit-tag{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);border:1px solid var(--border);padding:4px 9px;border-radius:3px;background:var(--panel);}
-  .rule{height:1px;background:linear-gradient(90deg, var(--cyan), var(--border) 35%, var(--border) 65%, var(--amber));margin:16px 0 22px;opacity:.6;}
+  .apptop{display:flex;align-items:center;gap:12px;margin-bottom:22px;}
+  .appicon{width:40px;height:40px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--cyan),#2fa89a);}
+  .appicon svg{width:21px;height:21px;stroke:#04211d;fill:none;stroke-width:1.8;}
+  .brand b{display:block;font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:800;line-height:1.25;}
+  .brand span{display:block;font-size:11px;color:var(--text-dim);margin-top:1px;}
+  .bankbadge{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);background:rgba(79,209,193,.1);border:1px solid rgba(79,209,193,.3);padding:5px 11px;border-radius:999px;white-space:nowrap;}
 
   /* LED progress rail */
   .rail{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:22px;}
@@ -99,9 +100,27 @@
 
   /* start screen */
   .start .card{text-align:left;}
-  .start p{color:var(--text-dim);line-height:1.6;font-size:14.5px;}
-  .badges{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 20px;}
-  .badge{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);border:1px solid var(--border);background:var(--panel-2);padding:5px 10px;border-radius:5px;}
+  .hero h2{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800;margin:0 0 8px;letter-spacing:-.01em;}
+  .hero p{font-size:14px;color:var(--text-dim);line-height:1.6;margin:0 0 20px;}
+
+  .statgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:20px;}
+  .stat{background:var(--panel-2);border:1px solid var(--border);border-radius:9px;padding:12px 13px;}
+  .stat .v{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--cyan);}
+  .stat .l{font-size:10.5px;color:var(--text-dim);margin-top:2px;}
+
+  .steps{display:flex;flex-direction:column;gap:11px;margin-bottom:20px;}
+  .step{display:flex;gap:11px;align-items:flex-start;}
+  .step .n{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#04211d;background:var(--cyan);width:20px;height:20px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;}
+  .step p{margin:0;font-size:13px;line-height:1.6;color:var(--text);}
+  .step b{color:var(--cyan);font-weight:600;}
+
+  .unittable{border:1px solid var(--border);border-radius:9px;overflow:hidden;margin-bottom:20px;}
+  .urow{display:flex;justify-content:space-between;gap:10px;padding:11px 14px;font-size:13px;background:var(--panel-2);border-bottom:1px solid var(--border);}
+  .urow:last-child{border-bottom:none;}
+  .urow .uname{font-weight:600;}
+  .urow .ucount{font-family:'JetBrains Mono',monospace;color:var(--cyan);white-space:nowrap;}
+
+  .cta-btn{width:100%;}
 
   /* results */
   .scorepanel{
@@ -136,8 +155,8 @@
 
   @media (max-width:560px){
     body{padding:20px 12px 48px;}
-    .hdr h1{font-size:18px;}
-    .hdr .unit-tag{font-size:10px;padding:4px 8px;}
+    .brand b{font-size:13.5px;}
+    .bankbadge{font-size:10px;padding:4px 8px;}
     .card{padding:18px 14px;}
     .qtext{font-size:16px;}
     .opt{padding:12px 12px;font-size:14px;}
@@ -155,26 +174,36 @@
 <body>
 <div class="wrap">
 
-  <div class="hdr">
-    <div>
-      <div class="eyebrow">UTM · Ing. en Tecnologías de la Información</div>
-      <h1>Simulacro — Sistemas Digitales</h1>
-    </div>
-    <div class="unit-tag" id="bank-tag">30 preguntas · 4 unidades</div>
+  <div class="apptop">
+    <div class="appicon"><svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/></svg></div>
+    <div class="brand"><b>Sistemas Digitales</b><span>UTM · Ing. en Tecnologías de la Información</span></div>
+    <div class="bankbadge" id="bank-tag"><span id="bank-size-text">120</span> preguntas</div>
   </div>
-  <div class="rule"></div>
 
   <!-- START SCREEN -->
   <div id="screen-start" class="start">
     <div class="card">
-      <p><b style="color:var(--text)">Cómo funciona:</b> se generan 30 preguntas al azar (opción múltiple, 4 alternativas) tomadas de un banco de <span id="bank-size-text">120</span> preguntas, cubriendo las 4 unidades del compendio. Cada acierto vale 1 punto, calificación sobre 30. Puedes revelar la respuesta correcta de cada pregunta con el botón "Ver respuesta", o esperar al final para ver la nota, el desglose por unidad y la revisión completa.</p>
-      <div class="badges">
-        <span class="badge">U1 · Circuitos Secuenciales</span>
-        <span class="badge">U2 · PLD / CPLD / FPGA</span>
-        <span class="badge">U3 · Microprocesadores</span>
-        <span class="badge">U4 · Microcontroladores</span>
+      <div class="hero">
+        <h2>Simulacro de examen</h2>
+        <p>30 preguntas al azar tomadas del banco completo, cubriendo circuitos secuenciales, PLD/CPLD/FPGA, microprocesadores y microcontroladores.</p>
       </div>
-      <button class="primary" onclick="startExam()">Iniciar simulacro</button>
+
+      <div class="statgrid">
+        <div class="stat"><div class="v">30</div><div class="l">preguntas por intento</div></div>
+        <div class="stat"><div class="v">4</div><div class="l">opciones por pregunta</div></div>
+        <div class="stat"><div class="v">4</div><div class="l">unidades cubiertas</div></div>
+        <div class="stat"><div class="v">∞</div><div class="l">intentos, siempre distintos</div></div>
+      </div>
+
+      <div class="steps">
+        <div class="step"><div class="n">1</div><p>Se sortean <b>30 preguntas</b> del banco completo y se mezclan las 4 unidades.</p></div>
+        <div class="step"><div class="n">2</div><p>Navega con <b>Anterior</b> y <b>Siguiente</b>. Usa <b>Ver respuesta</b> para revisar el literal correcto y su explicación.</p></div>
+        <div class="step"><div class="n">3</div><p>Al final verás tu <b>nota sobre 30</b>, el % de aciertos y el desglose por unidad.</p></div>
+      </div>
+
+      <div class="unittable" id="unit-table-start"></div>
+
+      <button class="primary cta-btn" onclick="startExam()">Iniciar simulacro →</button>
     </div>
   </div>
 
@@ -504,6 +533,15 @@ function finishExam(){
   show('screen-results');
   window.scrollTo({top:0, behavior:'smooth'});
 }
+
+(function renderStartUnitTable(){
+  const counts = {};
+  BANK.forEach(item=>{ counts[item.u] = (counts[item.u]||0) + 1; });
+  const table = document.getElementById('unit-table-start');
+  table.innerHTML = Object.keys(UNIT_NAMES).map(u=>
+    '<div class="urow"><span class="uname">'+UNIT_NAMES[u].replace('Unidad ','U')+'</span><span class="ucount">'+counts[u]+' preguntas</span></div>'
+  ).join('');
+})();
 </script>
 </body>
 </html>

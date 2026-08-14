@@ -9,29 +9,29 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #F3F5F8;
-    --panel: #FFFFFF;
-    --ink: #1C2333;
-    --ink-soft: #4B5468;
-    --line: #DCE1EA;
-    --violet: #6C5CE7;
-    --violet-deep: #4B3DC9;
-    --violet-tint: #EEEBFC;
-    --mint: #1FA971;
-    --mint-tint: #E4F7EE;
-    --amber: #DA9A2B;
-    --amber-tint: #FBF0DC;
-    --red: #E15656;
-    --red-tint: #FCEAEA;
+    --bg: #0c1020;
+    --panel: #171d33;
+    --ink: #eef0f7;
+    --ink-soft: #9aa2c0;
+    --line: #2a3252;
+    --violet: #8b7cf5;
+    --violet-deep: #b6a8fb;
+    --violet-tint: rgba(139,124,245,.16);
+    --mint: #34d399;
+    --mint-tint: rgba(52,211,153,.16);
+    --amber: #f0b64c;
+    --amber-tint: rgba(240,182,76,.16);
+    --red: #f16565;
+    --red-tint: rgba(241,101,101,.16);
     --radius: 16px;
-    --shadow: 0 1px 2px rgba(28,35,51,.04), 0 8px 24px -12px rgba(28,35,51,.12);
+    --shadow: 0 1px 2px rgba(0,0,0,.2), 0 8px 24px -12px rgba(0,0,0,.5);
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
     background:
-      radial-gradient(1200px 600px at 100% -10%, #ECE9FC 0%, transparent 55%),
-      radial-gradient(900px 500px at -10% 110%, #E3F6ED 0%, transparent 50%),
+      radial-gradient(1200px 600px at 100% -10%, rgba(139,124,245,.10) 0%, transparent 55%),
+      radial-gradient(900px 500px at -10% 110%, rgba(52,211,153,.08) 0%, transparent 50%),
       var(--bg);
     color:var(--ink);
     font-family:'Inter', system-ui, sans-serif;
@@ -57,7 +57,7 @@
   .brand-text span{ display:block; font-size:11.5px; color:var(--ink-soft); }
   .pill{
     font-size:12px; font-weight:600; padding:6px 12px; border-radius:999px;
-    background:var(--violet-tint); color:var(--violet-deep); border:1px solid #DAD3FB;
+    background:var(--violet-tint); color:var(--violet-deep); border:1px solid rgba(139,124,245,.35);
   }
 
   /* ---------- HOME ---------- */
@@ -85,7 +85,7 @@
   .howto{ display:grid; gap:10px; margin-bottom:28px; }
   .howto-item{ display:flex; gap:12px; align-items:flex-start; font-size:14px; color:var(--ink-soft); line-height:1.5; }
   .howto-item .num{
-    flex:none; width:24px; height:24px; border-radius:7px; background:var(--ink); color:#fff;
+    flex:none; width:24px; height:24px; border-radius:7px; background:var(--violet); color:#fff;
     display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; font-family:'Space Grotesk';
   }
   .howto-item b{ color:var(--ink); }
@@ -102,11 +102,14 @@
   }
   .btn-primary:hover{ box-shadow:0 14px 28px -10px rgba(108,92,231,.75); }
   .btn-ghost{ background:var(--bg); color:var(--ink); border:1px solid var(--line); }
-  .btn-ghost:hover{ background:#EDEFF4; }
+  .btn-ghost:hover{ background:#1c2440; }
   .btn-block{ width:100%; justify-content:center; }
 
-  .unit-legend{ display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
-  .unit-chip{ font-size:11.5px; font-weight:600; padding:5px 10px; border-radius:8px; background:var(--bg); border:1px solid var(--line); color:var(--ink-soft); }
+  .unit-table{ border:1px solid var(--line); border-radius:12px; overflow:hidden; margin:22px 0 24px; }
+  .unit-row{ display:flex; justify-content:space-between; gap:10px; padding:11px 15px; font-size:13px; background:var(--bg); border-bottom:1px solid var(--line); }
+  .unit-row:last-child{ border-bottom:none; }
+  .unit-row .uname{ font-weight:600; color:var(--ink); }
+  .unit-row .ucount{ font-family:'JetBrains Mono',monospace; color:var(--violet-deep); white-space:nowrap; }
 
   .footnote{ text-align:center; font-size:12px; color:var(--ink-soft); margin-top:22px; }
 
@@ -119,7 +122,7 @@
   /* LED rail — signature element: visibilidad del estado del sistema */
   .rail{ display:flex; gap:5px; overflow-x:auto; padding:4px 2px 14px; margin-bottom:6px; scrollbar-width:thin; }
   .led{
-    flex:none; width:10px; height:10px; border-radius:50%; background:#D7DCE6; cursor:pointer;
+    flex:none; width:10px; height:10px; border-radius:50%; background:#333d5c; cursor:pointer;
     transition:transform .15s ease, background .15s ease, box-shadow .15s ease; position:relative;
   }
   .led:hover{ transform:scale(1.25); }
@@ -135,9 +138,9 @@
     padding:13px 15px; border-radius:13px; border:1.5px solid var(--line); background:var(--bg);
     cursor:pointer; font-size:14.5px; line-height:1.5; color:var(--ink);
   }
-  .opt:hover{ border-color:#C9C2F5; background:#F8F7FE; }
+  .opt:hover{ border-color:#4a3f8f; background:#1c2440; }
   .opt .letter{
-    flex:none; width:24px; height:24px; border-radius:7px; background:#fff; border:1.5px solid var(--line);
+    flex:none; width:24px; height:24px; border-radius:7px; background:var(--panel); border:1.5px solid var(--line);
     display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; font-family:'Space Grotesk'; color:var(--ink-soft);
   }
   .opt.selected{ border-color:var(--violet); background:var(--violet-tint); }
@@ -150,7 +153,7 @@
 
   .reveal{
     margin-top:6px; padding:16px 17px; border-radius:14px; background:var(--mint-tint);
-    border:1px solid #BFEBD6; font-size:14px; line-height:1.6; color:#0F5C3C; display:none;
+    border:1px solid rgba(52,211,153,.35); font-size:14px; line-height:1.6; color:#bdf5df; display:none;
   }
   .reveal.show{ display:block; }
   .reveal b{ display:block; margin-bottom:5px; font-family:'Space Grotesk'; font-size:13px; letter-spacing:.02em; text-transform:uppercase; }
@@ -162,7 +165,7 @@
 
   /* ---------- RESULTS ---------- */
   .score-hero{
-    background:linear-gradient(150deg, var(--ink) 0%, #2B3550 100%); color:#fff; border-radius:22px;
+    background:linear-gradient(150deg, #1b2140 0%, #2b3550 100%); color:#fff; border-radius:22px;
     padding:34px 30px; text-align:center; box-shadow:var(--shadow); position:relative; overflow:hidden;
   }
   .score-hero::after{ content:""; position:absolute; inset:0; background:radial-gradient(600px 300px at 50% -20%, rgba(108,92,231,.35), transparent 60%); }
@@ -181,8 +184,8 @@
   .review-item{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px 18px; margin-bottom:12px; }
   .review-head{ display:flex; gap:10px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
   .review-idx{ font-family:'Space Grotesk'; font-weight:700; font-size:13px; color:var(--ink-soft); }
-  .badge-ok{ font-size:11px; font-weight:700; color:#0F5C3C; background:var(--mint-tint); padding:3px 9px; border-radius:7px; }
-  .badge-bad{ font-size:11px; font-weight:700; color:#8C2222; background:var(--red-tint); padding:3px 9px; border-radius:7px; }
+  .badge-ok{ font-size:11px; font-weight:700; color:#bdf5df; background:var(--mint-tint); padding:3px 9px; border-radius:7px; }
+  .badge-bad{ font-size:11px; font-weight:700; color:#ffc2c2; background:var(--red-tint); padding:3px 9px; border-radius:7px; }
   .review-q{ font-size:15px; font-weight:600; margin:0 0 10px; line-height:1.5; }
   .review-line{ font-size:13.5px; margin:4px 0; line-height:1.55; }
   .review-line b{ font-weight:700; }
@@ -438,7 +441,7 @@ function renderHome(){
   return `
     <div class="topbar">
       <div class="brand">
-        <div class="brand-mark">IHC</div>
+        <div class="brand-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="1.8"><path d="M6 3l13 7.5-5.6 1.6L11 18z"/></svg></div>
         <div class="brand-text"><b>Simulador IHC</b><span>Interacción Humano-Computador · UTM</span></div>
       </div>
       <span class="pill">${QUESTION_BANK.length} preguntas en el banco</span>
@@ -462,14 +465,14 @@ function renderHome(){
         <div class="howto-item"><span class="num">3</span><span>Al finalizar verás tu <b>nota sobre 30</b>, el porcentaje de aciertos, el desglose por unidad y la revisión completa de cada pregunta.</span></div>
       </div>
 
-      <button class="btn btn-primary btn-block" id="startBtn">Iniciar simulacro →</button>
-
-      <div class="unit-legend">
-        <span class="unit-chip">U1 · Fundamentos — ${counts.U1} preguntas</span>
-        <span class="unit-chip">U2 · Proceso de diseño — ${counts.U2} preguntas</span>
-        <span class="unit-chip">U3 · DCU — ${counts.U3} preguntas</span>
-        <span class="unit-chip">U4 · Evaluación (usabilidad/accesibilidad) — ${counts.U4} preguntas</span>
+      <div class="unit-table">
+        <div class="unit-row"><span class="uname">U1 · Fundamentos</span><span class="ucount">${counts.U1} preguntas</span></div>
+        <div class="unit-row"><span class="uname">U2 · Proceso de diseño</span><span class="ucount">${counts.U2} preguntas</span></div>
+        <div class="unit-row"><span class="uname">U3 · DCU</span><span class="ucount">${counts.U3} preguntas</span></div>
+        <div class="unit-row"><span class="uname">U4 · Evaluación (usabilidad/accesibilidad)</span><span class="ucount">${counts.U4} preguntas</span></div>
       </div>
+
+      <button class="btn btn-primary btn-block" id="startBtn">Iniciar simulacro →</button>
     </div>
     <p class="footnote">Contenido elaborado a partir de los compendios y material semanal de la asignatura. Uso exclusivo como apoyo de estudio.</p>
   `;
@@ -506,7 +509,7 @@ function renderExam(){
   return `
     <div class="topbar">
       <div class="brand">
-        <div class="brand-mark">IHC</div>
+        <div class="brand-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="1.8"><path d="M6 3l13 7.5-5.6 1.6L11 18z"/></svg></div>
         <div class="brand-text"><b>Simulacro en curso</b><span>Responde y navega libremente entre preguntas</span></div>
       </div>
       <span class="pill">${state.answers.filter(a=>a!==null).length}/${total} respondidas</span>
@@ -586,7 +589,7 @@ function renderResults(){
   return `
     <div class="topbar">
       <div class="brand">
-        <div class="brand-mark">IHC</div>
+        <div class="brand-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="1.8"><path d="M6 3l13 7.5-5.6 1.6L11 18z"/></svg></div>
         <div class="brand-text"><b>Resultados del simulacro</b><span>Revisión completa de tu intento</span></div>
       </div>
       <button class="btn btn-ghost" id="homeBtn">Inicio</button>

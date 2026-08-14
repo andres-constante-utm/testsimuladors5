@@ -23,6 +23,7 @@
     --teal: #22d3b6;
     --teal-dim: #17998a;
     --amber: #f5a623;
+    --amber-dim: #c9820f;
     --red: #ef4565;
     --red-dim: #3a1c28;
     --green: #22d3b6;
@@ -53,9 +54,9 @@
   }
   .logo{
     width:44px;height:44px;border-radius:12px;
-    background: linear-gradient(135deg, var(--teal), var(--teal-dim));
+    background: linear-gradient(135deg, var(--amber), var(--amber-dim));
     display:flex;align-items:center;justify-content:center;
-    box-shadow: 0 8px 20px -6px rgba(34,211,182,.5);
+    box-shadow: 0 8px 20px -6px rgba(245,166,35,.5);
     flex-shrink:0;
   }
   .logo svg{width:24px;height:24px;}
@@ -77,44 +78,38 @@
   }
   .pill{
     display:inline-flex;align-items:center;gap:8px;
-    background: rgba(34,211,182,.10);
-    border:1px solid rgba(34,211,182,.30);
-    color: var(--teal);
+    background: rgba(245,166,35,.10);
+    border:1px solid rgba(245,166,35,.30);
+    color: var(--amber);
     font-family:'JetBrains Mono',monospace;
     font-size:11.5px;
     padding:6px 12px;border-radius:999px;
     margin-bottom:18px;
     letter-spacing:.4px;
   }
-  .pill .dot{width:6px;height:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);}
+  .pill .dot{width:6px;height:6px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber);}
   .home-hero h2{font-size:26px;margin:0 0 10px;font-weight:800;line-height:1.25;}
   .home-hero p{color:var(--muted);font-size:14.5px;line-height:1.6;max-width:520px;margin:0 auto;}
 
-  .rule-grid{
-    display:grid;grid-template-columns: 1fr 1fr;gap:12px;
-    margin: 26px 0 8px;
-  }
-  @media (max-width:560px){ .rule-grid{grid-template-columns:1fr;} }
-  .rule-item{
-    background: var(--bg);
-    border:1px solid var(--border-soft);
-    border-radius:12px;
-    padding:14px 16px;
-    display:flex;gap:12px;align-items:flex-start;
-  }
-  .rule-item .num{
+  .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:26px 0 20px;}
+  .stat-tile{background:var(--bg);border:1px solid var(--border-soft);border-radius:12px;padding:14px 15px;}
+  .stat-tile .v{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--amber);}
+  .stat-tile .l{font-size:11px;color:var(--muted);margin-top:3px;}
+
+  .steps{display:flex;flex-direction:column;gap:12px;margin-bottom:22px;}
+  .step-item{display:flex;gap:12px;align-items:flex-start;}
+  .step-item .num{
     font-family:'JetBrains Mono',monospace;
-    color:var(--amber);
+    color:#241705;
     font-weight:700;
     font-size:13px;
-    background: rgba(245,166,35,.12);
-    border:1px solid rgba(245,166,35,.3);
-    width:26px;height:26px;border-radius:8px;
+    background: var(--amber);
+    width:24px;height:24px;border-radius:8px;
     display:flex;align-items:center;justify-content:center;
-    flex-shrink:0;
+    flex-shrink:0;margin-top:1px;
   }
-  .rule-item div p{margin:0;font-size:13.5px;color: var(--text);line-height:1.5;}
-  .rule-item div span{display:block;font-size:11px;color:var(--muted);margin-top:2px;}
+  .step-item p{margin:0;font-size:13.5px;color: var(--text);line-height:1.55;}
+  .step-item p b{color:var(--amber);font-weight:600;}
 
   .unit-table{
     margin-top: 22px;
@@ -131,7 +126,7 @@
   }
   .unit-row:last-child{border-bottom:none;}
   .unit-row .uname{color:var(--text);font-weight:600;}
-  .unit-row .ucount{font-family:'JetBrains Mono',monospace;color:var(--teal);font-weight:600;}
+  .unit-row .ucount{font-family:'JetBrains Mono',monospace;color:var(--amber);font-weight:600;}
 
   .btn{
     appearance:none;border:none;cursor:pointer;
@@ -142,13 +137,13 @@
   }
   .btn:active{transform:scale(.98);}
   .btn-primary{
-    background: linear-gradient(135deg, var(--teal), #16a690);
-    color:#04241d;
-    box-shadow: 0 10px 24px -8px rgba(34,211,182,.55);
+    background: linear-gradient(135deg, var(--amber), var(--amber-dim));
+    color:#241705;
+    box-shadow: 0 10px 24px -8px rgba(245,166,35,.55);
     width:100%;
     margin-top:24px;
   }
-  .btn-primary:hover{box-shadow:0 14px 30px -8px rgba(34,211,182,.7);}
+  .btn-primary:hover{box-shadow:0 14px 30px -8px rgba(245,166,35,.7);}
   .btn-ghost{
     background: var(--bg);
     color: var(--text);
@@ -337,28 +332,22 @@
   <!-- HOME -->
   <div id="view-home" class="card">
     <div class="home-hero">
-      <div class="pill"><span class="dot"></span> BANCO DE 116 PREGUNTAS</div>
+      <div class="pill"><span class="dot"></span> BANCO DE <span id="bank-size-text">116</span> PREGUNTAS</div>
       <h2>Simulacro de examen<br>Administración de Bases de Datos</h2>
       <p>Cada intento sortea 30 preguntas al azar del banco y reordena las opciones de cada pregunta. Ideal para repasar las 4 unidades del curso antes del examen.</p>
     </div>
 
-    <div class="rule-grid">
-      <div class="rule-item">
-        <div class="num">1</div>
-        <div><p>30 preguntas por intento</p><span>Selección aleatoria del banco completo</span></div>
-      </div>
-      <div class="rule-item">
-        <div class="num">2</div>
-        <div><p>4 opciones, 1 correcta</p><span>El orden se baraja en cada intento</span></div>
-      </div>
-      <div class="rule-item">
-        <div class="num">3</div>
-        <div><p>Ver respuesta</p><span>Muestra el literal correcto + explicación</span></div>
-      </div>
-      <div class="rule-item">
-        <div class="num">4</div>
-        <div><p>Revisión final</p><span>Nota, % y desglose por unidad</span></div>
-      </div>
+    <div class="stat-grid">
+      <div class="stat-tile"><div class="v">30</div><div class="l">preguntas por intento</div></div>
+      <div class="stat-tile"><div class="v">4</div><div class="l">opciones por pregunta</div></div>
+      <div class="stat-tile"><div class="v">4</div><div class="l">unidades cubiertas</div></div>
+      <div class="stat-tile"><div class="v">∞</div><div class="l">intentos, siempre distintos</div></div>
+    </div>
+
+    <div class="steps">
+      <div class="step-item"><div class="num">1</div><p>Se sortean <b>30 preguntas</b> del banco completo y se mezclan las 4 unidades.</p></div>
+      <div class="step-item"><div class="num">2</div><p>Navega con <b>Anterior</b> y <b>Siguiente</b>. Usa <b>Ver respuesta</b> para revisar el literal correcto y su explicación.</p></div>
+      <div class="step-item"><div class="num">3</div><p>Al final verás tu <b>nota sobre 30</b>, el % de aciertos y el desglose por unidad.</p></div>
     </div>
 
     <div class="unit-table" id="unit-table"></div>
@@ -443,6 +432,7 @@ function renderUnitTable(){
   `).join('');
 }
 renderUnitTable();
+document.getElementById('bank-size-text').textContent = QUESTIONS.length;
 
 // ---- exam state ----
 let examQuestions = [];
