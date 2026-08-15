@@ -101,6 +101,8 @@
     box-shadow:0 10px 24px -10px rgba(108,92,231,.65);
   }
   .btn-primary:hover{ box-shadow:0 14px 28px -10px rgba(108,92,231,.75); }
+  .btn-secondary{ background:transparent; border:1px solid rgba(139,124,245,.4); color:var(--violet-deep); margin-top:10px; }
+  .btn-secondary:hover{ background:var(--violet-tint); }
   .btn-ghost{ background:var(--bg); color:var(--ink); border:1px solid var(--line); }
   .btn-ghost:hover{ background:#1c2440; }
   .btn-block{ width:100%; justify-content:center; }
@@ -111,7 +113,29 @@
   .unit-row .uname{ font-weight:600; color:var(--ink); }
   .unit-row .ucount{ font-family:'JetBrains Mono',monospace; color:var(--violet-deep); white-space:nowrap; }
 
-  .footnote{ text-align:center; font-size:12px; color:var(--ink-soft); margin-top:22px; }
+  .footnote{ text-align:center; font-size:12px; color:var(--ink-soft); margin-top:22px; line-height:1.6; }
+
+  /* ---------- BANK ---------- */
+  .bank-topbar{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+  .bank-back{ background:transparent; border:none; color:var(--ink-soft); font-size:13px; font-weight:600; padding:0; cursor:pointer; }
+  .bank-back:hover{ color:var(--violet-deep); }
+  .bank-print{ margin-left:auto; width:auto; padding:9px 16px; }
+  .bank-title{ font-size:19px; font-weight:800; margin:0 0 4px; }
+  .bank-sub{ font-size:12.5px; color:var(--ink-soft); margin-bottom:20px; }
+  .bank-unit-h{ font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--violet-deep); margin:22px 0 10px; padding-bottom:6px; border-bottom:1px solid var(--line); }
+  .bank-unit-h:first-child{ margin-top:0; }
+  .bank-q{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px 16px; margin-bottom:10px; }
+  .bank-q .bq-text{ font-size:14px; font-weight:600; line-height:1.5; margin:0 0 8px; }
+  .bank-q .bq-text b{ color:var(--violet-deep); }
+  .bank-q .bq-ans{ font-size:13px; font-weight:700; color:var(--violet-deep); margin:0 0 6px; }
+  .bank-q .bq-exp{ font-size:12.5px; line-height:1.55; color:var(--ink-soft); margin:0; }
+
+  @media print{
+    :root{ --bg:#fff; --panel:#fff; --ink:#111; --ink-soft:#444; --line:#ccc; }
+    body{ background:#fff !important; }
+    .btn, .topbar{ display:none !important; }
+    .bank-q{ break-inside:avoid; }
+  }
 
   /* ---------- EXAM ---------- */
   .exam-panel{ background:var(--panel); border:1px solid var(--line); border-radius:22px; box-shadow:var(--shadow); padding:26px 26px 24px; }
@@ -205,6 +229,8 @@
     .score-hero .big{ font-size:46px; }
     .nav-row{ flex-wrap:wrap; }
     .nav-row .btn-icon{ order:3; flex-basis:100%; }
+    .bank-title{ font-size:16px; }
+    .bank-q{ padding:12px 13px; }
   }
 </style>
 </head>
@@ -426,11 +452,17 @@ function backHome(){
   render();
 }
 
+function viewBank(){
+  state.screen = "bank";
+  render();
+}
+
 /* ---------------- RENDER ---------------- */
 function render(){
   const app = document.getElementById("app");
   if(state.screen === "home") app.innerHTML = renderHome();
   else if(state.screen === "exam") app.innerHTML = renderExam();
+  else if(state.screen === "bank") app.innerHTML = renderBank();
   else app.innerHTML = renderResults();
   attachEvents();
   window.scrollTo({top:0, behavior:"instant"});
@@ -473,8 +505,9 @@ function renderHome(){
       </div>
 
       <button class="btn btn-primary btn-block" id="startBtn">Iniciar simulacro →</button>
+      <button class="btn btn-secondary btn-block" id="bankBtn">Ver banco de preguntas</button>
     </div>
-    <p class="footnote">Contenido elaborado a partir de los compendios y material semanal de la asignatura. Uso exclusivo como apoyo de estudio.</p>
+    <p class="footnote">Contenido elaborado a partir de los compendios y material semanal de la asignatura. Uso exclusivo como apoyo de estudio.<br>Desarrollado por Andrés Constante M.</p>
   `;
 }
 
@@ -540,6 +573,7 @@ function renderExam(){
           : `<button class="btn btn-primary" id="nextBtn">Siguiente →</button>`}
       </div>
     </div>
+    <p class="footnote">Desarrollado por Andrés Constante M.</p>
   `;
 }
 
@@ -610,6 +644,34 @@ function renderResults(){
     ${review}
 
     <button class="btn btn-primary btn-block" id="retryBtn2">Nuevo simulacro (30 preguntas nuevas) ↻</button>
+    <p class="footnote">Desarrollado por Andrés Constante M.</p>
+  `;
+}
+
+function renderBank(){
+  let n = 0;
+  const groups = Object.keys(UNIT_NAMES).map(u=>{
+    const cards = QUESTION_BANK.filter(item=>item.unit===u).map(item=>{
+      n++;
+      return `
+        <div class="bank-q">
+          <p class="bq-text"><b>${n}.</b> ${escapeHtml(item.q)}</p>
+          <p class="bq-ans">✓ ${escapeHtml(item.options[0])}</p>
+          <p class="bq-exp">${escapeHtml(item.exp)}</p>
+        </div>`;
+    }).join("");
+    return `<div class="bank-unit-h">${UNIT_NAMES[u]}</div>${cards}`;
+  }).join("");
+
+  return `
+    <div class="bank-topbar">
+      <button class="bank-back" id="bankBackBtn">← Volver</button>
+      <button class="btn btn-ghost bank-print" id="bankPrintBtn">Imprimir</button>
+    </div>
+    <div class="bank-title">Banco de preguntas · Interacción Humano-Computador</div>
+    <div class="bank-sub">${QUESTION_BANK.length} preguntas con respuesta correcta y justificación · Ctrl/Cmd+P para imprimir</div>
+    ${groups}
+    <p class="footnote">Desarrollado por Andrés Constante M.</p>
   `;
 }
 
@@ -644,6 +706,15 @@ function attachEvents(){
 
   const homeBtn = document.getElementById("homeBtn");
   if(homeBtn) homeBtn.addEventListener("click", backHome);
+
+  const bankBtn = document.getElementById("bankBtn");
+  if(bankBtn) bankBtn.addEventListener("click", viewBank);
+
+  const bankBackBtn = document.getElementById("bankBackBtn");
+  if(bankBackBtn) bankBackBtn.addEventListener("click", backHome);
+
+  const bankPrintBtn = document.getElementById("bankPrintBtn");
+  if(bankPrintBtn) bankPrintBtn.addEventListener("click", ()=> window.print());
 }
 
 render();

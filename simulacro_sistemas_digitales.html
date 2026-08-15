@@ -88,6 +88,9 @@
   button.reveal{border-color:var(--amber);color:var(--amber);}
   button.reveal:hover{background:rgba(232,163,61,.1);color:var(--amber);}
   button.reveal.active{background:rgba(232,163,61,.14);}
+  button.secondary{background:transparent;border:1px solid var(--cyan);color:var(--cyan);}
+  button.secondary:hover{background:rgba(79,209,193,.08);}
+  button.secondary.cta-btn{margin-top:10px;}
 
   /* reveal panel */
   .revealpanel{
@@ -151,7 +154,29 @@
 
   .hidden{display:none !important;}
   .toprow{display:flex;justify-content:flex-end;gap:10px;margin-bottom:14px;}
-  footer{text-align:center;color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:30px;letter-spacing:.04em;}
+  footer{text-align:center;color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:30px;letter-spacing:.04em;line-height:1.7;}
+
+  /* bank view */
+  .bank-topbar{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+  .bank-back{background:transparent;border:none;color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:12px;text-transform:none;letter-spacing:normal;padding:0;cursor:pointer;}
+  .bank-back:hover{color:var(--cyan);}
+  .bank-print{margin-left:auto;}
+  .bank-title{font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:800;margin:0 0 4px;}
+  .bank-sub{font-size:12.5px;color:var(--text-dim);margin-bottom:20px;}
+  .bank-unit-h{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan);margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+  .bank-unit-h:first-child{margin-top:0;}
+  .bank-q{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:10px;}
+  .bank-q .bq-text{font-size:14px;font-weight:600;line-height:1.5;margin:0 0 8px;}
+  .bank-q .bq-text b{color:var(--cyan);font-family:'JetBrains Mono',monospace;}
+  .bank-q .bq-ans{font-size:13px;font-weight:700;color:var(--cyan);margin:0 0 6px;}
+  .bank-q .bq-exp{font-size:12.5px;line-height:1.55;color:var(--text-dim);margin:0;}
+
+  @media print{
+    :root{ --bg:#fff; --panel:#fff; --panel-2:#f3f3f3; --text:#111; --text-dim:#444; --border:#ccc; }
+    body{background:#fff !important;padding:0 !important;}
+    button, .apptop{display:none !important;}
+    .bank-q{break-inside:avoid;}
+  }
 
   @media (max-width:560px){
     body{padding:20px 12px 48px;}
@@ -168,6 +193,8 @@
     .unitgrid{gap:8px;}
     .unitcard{padding:10px 12px;}
     .unitcard .v{font-size:18px;}
+    .bank-title{font-size:16px;}
+    .bank-q{padding:12px 13px;}
   }
 </style>
 </head>
@@ -204,6 +231,7 @@
       <div class="unittable" id="unit-table-start"></div>
 
       <button class="primary cta-btn" onclick="startExam()">Iniciar simulacro →</button>
+      <button class="secondary cta-btn" onclick="viewBank()">Ver banco de preguntas</button>
     </div>
   </div>
 
@@ -241,7 +269,18 @@
     <div class="review" id="review"></div>
   </div>
 
-  <footer>Generado a partir de los compendios de Sistemas Digitales · UTM 2026</footer>
+  <!-- BANK SCREEN -->
+  <div id="screen-bank" class="hidden">
+    <div class="bank-topbar">
+      <button class="bank-back" onclick="show('screen-start')">← Volver</button>
+      <button class="ghost bank-print" onclick="window.print()">Imprimir</button>
+    </div>
+    <div class="bank-title">Banco de preguntas · Sistemas Digitales</div>
+    <div class="bank-sub" id="bank-sub"></div>
+    <div id="bank-list"></div>
+  </div>
+
+  <footer>Generado a partir de los compendios de Sistemas Digitales · UTM 2026<br>Desarrollado por Andrés Constante M.</footer>
 </div>
 
 <script>
@@ -417,9 +456,25 @@ function startExam(){
 }
 
 function show(id){
-  ['screen-start','screen-exam','screen-results'].forEach(s=>{
+  ['screen-start','screen-exam','screen-results','screen-bank'].forEach(s=>{
     document.getElementById(s).classList.toggle('hidden', s!==id);
   });
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function viewBank(){
+  document.getElementById('bank-sub').textContent = BANK.length + ' preguntas con respuesta correcta y justificación · Ctrl/Cmd+P para imprimir';
+  let html = '';
+  let n = 0;
+  Object.keys(UNIT_NAMES).forEach(u=>{
+    html += '<div class="bank-unit-h">'+UNIT_NAMES[u]+'</div>';
+    BANK.filter(q=>q.u===u).forEach(q=>{
+      n++;
+      html += '<div class="bank-q"><p class="bq-text"><b>'+n+'.</b> '+q.q+'</p><p class="bq-ans">✓ '+q.opts[q.correct]+'</p><p class="bq-exp">'+q.exp+'</p></div>';
+    });
+  });
+  document.getElementById('bank-list').innerHTML = html;
+  show('screen-bank');
 }
 
 function renderRail(){

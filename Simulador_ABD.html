@@ -144,6 +144,14 @@
     margin-top:24px;
   }
   .btn-primary:hover{box-shadow:0 14px 30px -8px rgba(245,166,35,.7);}
+  .btn-secondary{
+    background:transparent;
+    border:1px solid rgba(245,166,35,.4);
+    color:var(--amber);
+    width:100%;
+    margin-top:10px;
+  }
+  .btn-secondary:hover{ background:rgba(245,166,35,.08); }
   .btn-ghost{
     background: var(--bg);
     color: var(--text);
@@ -297,6 +305,29 @@
 
   .hidden{ display:none !important; }
 
+  /* bank view */
+  .bank-topbar{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+  .bank-back{ background:transparent; border:none; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:12px; padding:0; cursor:pointer; }
+  .bank-back:hover{ color:var(--amber); }
+  .bank-print{ margin-left:auto; width:auto; padding:9px 14px; font-size:12.5px; }
+  .bank-title{ font-size:19px; font-weight:800; margin:0 0 4px; }
+  .bank-sub{ font-size:12.5px; color:var(--muted); margin-bottom:20px; font-family:'JetBrains Mono',monospace; }
+  .bank-unit-h{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--amber); margin:22px 0 10px; padding-bottom:6px; border-bottom:1px solid var(--border-soft); }
+  .bank-unit-h:first-child{ margin-top:0; }
+  .bank-q{ background:var(--bg); border:1px solid var(--border-soft); border-radius:12px; padding:14px 16px; margin-bottom:10px; }
+  .bank-q .bq-text{ font-size:14px; font-weight:600; line-height:1.5; margin:0 0 8px; }
+  .bank-q .bq-text b{ color:var(--amber); font-family:'JetBrains Mono',monospace; }
+  .bank-q .bq-ans{ font-size:13px; font-weight:700; color:var(--amber); margin:0 0 6px; }
+  .bank-q .bq-exp{ font-size:12.5px; line-height:1.55; color:var(--muted); margin:0; }
+
+  @media print{
+    :root{ --bg:#fff; --panel:#fff; --panel-2:#fff; --text:#111; --muted:#444; --border:#ccc; --border-soft:#ccc; }
+    body{ background:#fff !important; }
+    .btn, header.topbar{ display:none !important; }
+    .card{ box-shadow:none !important; }
+    .bank-q{ break-inside:avoid; }
+  }
+
   @media (max-width:560px){
     .wrap{ padding:20px 14px 60px; }
     .card{ padding:18px 16px; }
@@ -309,6 +340,8 @@
     .nav-row .btn-amber{ order:3; flex-basis:100%; }
     .score-num{ font-size:42px; }
     .unit-row{ font-size:12px; padding:10px 14px; }
+    .bank-title{ font-size:16px; }
+    .bank-q{ padding:12px 13px; }
   }
 </style>
 </head>
@@ -353,6 +386,7 @@
     <div class="unit-table" id="unit-table"></div>
 
     <button class="btn btn-primary" id="btn-start">Iniciar simulacro →</button>
+    <button class="btn btn-secondary" id="btn-view-bank">Ver banco de preguntas</button>
   </div>
 
   <!-- EXAM -->
@@ -396,7 +430,18 @@
     <button class="btn btn-primary" id="btn-restart">Nuevo simulacro ↺</button>
   </div>
 
-  <div class="footer-note">Contenido basado en compendios y presentaciones de la asignatura · Unidades 1-4</div>
+  <!-- BANK -->
+  <div id="view-bank" class="card hidden">
+    <div class="bank-topbar">
+      <button class="bank-back" id="btn-bank-back">← Volver</button>
+      <button class="btn btn-ghost bank-print" id="btn-bank-print">Imprimir</button>
+    </div>
+    <div class="bank-title">Banco de preguntas · Administración de Bases de Datos</div>
+    <div class="bank-sub" id="bank-sub"></div>
+    <div id="bank-list"></div>
+  </div>
+
+  <div class="footer-note">Contenido basado en compendios y presentaciones de la asignatura · Unidades 1-4<br>Desarrollado por Andrés Constante M.</div>
 </div>
 
 <script>
@@ -458,10 +503,24 @@ function buildExam(){
 }
 
 function showView(id){
-  ['view-home','view-exam','view-results'].forEach(v => {
+  ['view-home','view-exam','view-results','view-bank'].forEach(v => {
     document.getElementById(v).classList.toggle('hidden', v !== id);
   });
   window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+}
+
+function renderBankView(){
+  document.getElementById('bank-sub').textContent = QUESTIONS.length + ' preguntas con respuesta correcta y justificación · Ctrl/Cmd+P para imprimir';
+  let html = '';
+  let n = 0;
+  Object.keys(UNIT_NAMES).forEach(u => {
+    html += `<div class="bank-unit-h">${UNIT_NAMES[u]}</div>`;
+    QUESTIONS.filter(q => q.u === u).forEach(q => {
+      n++;
+      html += `<div class="bank-q"><p class="bq-text"><b>${n}.</b> ${q.q}</p><p class="bq-ans">✓ ${q.o[q.c]}</p><p class="bq-exp">${q.e}</p></div>`;
+    });
+  });
+  document.getElementById('bank-list').innerHTML = html;
 }
 
 function renderRail(){
@@ -530,6 +589,19 @@ document.getElementById('btn-start').addEventListener('click', () => {
   buildExam();
   showView('view-exam');
   renderExamQuestion();
+});
+
+document.getElementById('btn-view-bank').addEventListener('click', () => {
+  renderBankView();
+  showView('view-bank');
+});
+
+document.getElementById('btn-bank-back').addEventListener('click', () => {
+  showView('view-home');
+});
+
+document.getElementById('btn-bank-print').addEventListener('click', () => {
+  window.print();
 });
 
 document.getElementById('btn-reveal').addEventListener('click', () => {
