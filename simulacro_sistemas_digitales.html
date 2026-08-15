@@ -35,6 +35,8 @@
   .wrap{max-width:760px;margin:0 auto;}
 
   /* header */
+  .home-link{display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-dim);text-decoration:none;margin-bottom:14px;}
+  .home-link:hover{color:var(--cyan);}
   .apptop{display:flex;align-items:center;gap:12px;margin-bottom:22px;}
   .appicon{width:40px;height:40px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--cyan),#2fa89a);}
   .appicon svg{width:21px;height:21px;stroke:#04211d;fill:none;stroke-width:1.8;}
@@ -174,7 +176,7 @@
   @media print{
     :root{ --bg:#fff; --panel:#fff; --panel-2:#f3f3f3; --text:#111; --text-dim:#444; --border:#ccc; }
     body{background:#fff !important;padding:0 !important;}
-    button, .apptop{display:none !important;}
+    button, .apptop, .home-link{display:none !important;}
     .bank-q{break-inside:avoid;}
   }
 
@@ -201,6 +203,7 @@
 <body>
 <div class="wrap">
 
+  <a href="index.html" class="home-link">← Inicio</a>
   <div class="apptop">
     <div class="appicon"><svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/></svg></div>
     <div class="brand"><b>Sistemas Digitales</b><span>UTM · Ing. en Tecnologías de la Información</span></div>

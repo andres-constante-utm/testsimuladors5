@@ -46,6 +46,12 @@
     margin: 0 auto;
     padding: 28px 20px 80px;
   }
+  .home-link{
+    display:inline-flex; align-items:center; gap:5px;
+    font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+    text-decoration:none; margin-bottom:16px;
+  }
+  .home-link:hover{ color:var(--amber); }
   header.topbar{
     display:flex;
     align-items:center;
@@ -323,7 +329,7 @@
   @media print{
     :root{ --bg:#fff; --panel:#fff; --panel-2:#fff; --text:#111; --muted:#444; --border:#ccc; --border-soft:#ccc; }
     body{ background:#fff !important; }
-    .btn, header.topbar{ display:none !important; }
+    .btn, header.topbar, .home-link{ display:none !important; }
     .card{ box-shadow:none !important; }
     .bank-q{ break-inside:avoid; }
   }
@@ -348,6 +354,7 @@
 <body>
 <div class="wrap">
 
+  <a href="index.html" class="home-link">← Inicio</a>
   <header class="topbar">
     <div class="logo">
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

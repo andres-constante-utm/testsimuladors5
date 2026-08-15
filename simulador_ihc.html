@@ -45,6 +45,9 @@
   :focus-visible{ outline:3px solid var(--violet); outline-offset:2px; border-radius:6px; }
 
   .wrap{ max-width:880px; margin:0 auto; padding:32px 20px 64px; }
+  .home-bar{ max-width:880px; margin:0 auto; padding:24px 20px 0; }
+  .home-link{ display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; color:var(--ink-soft); text-decoration:none; }
+  .home-link:hover{ color:var(--violet-deep); }
   .topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; }
   .brand{ display:flex; align-items:center; gap:10px; }
   .brand-mark{
@@ -133,7 +136,7 @@
   @media print{
     :root{ --bg:#fff; --panel:#fff; --ink:#111; --ink-soft:#444; --line:#ccc; }
     body{ background:#fff !important; }
-    .btn, .topbar{ display:none !important; }
+    .btn, .topbar, .home-bar{ display:none !important; }
     .bank-q{ break-inside:avoid; }
   }
 
@@ -219,6 +222,7 @@
 
   @media (max-width:560px){
     .wrap{ padding:20px 14px 48px; }
+    .home-bar{ padding:16px 14px 0; }
     .hero{ padding:26px 20px; }
     .hero h1{ font-size:24px; }
     .stat-row{ grid-template-columns:repeat(2,1fr); }
@@ -235,6 +239,7 @@
 </style>
 </head>
 <body>
+<div class="home-bar"><a href="index.html" class="home-link">← Inicio</a></div>
 <div class="wrap" id="app"></div>
 
 <script>
